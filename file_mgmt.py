@@ -1,5 +1,7 @@
 import os
+import platform
 import shutil
+import subprocess
 from pathlib import Path
 from typing import List
 from zipfile import ZipFile
@@ -108,3 +110,14 @@ def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -
             extracted.append(moodle_id)
 
     return extracted
+
+
+def open_file(path: str) -> None:
+    path = Path(path)
+    # taken from: https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
+    if platform.system() == 'Darwin':  # macOS
+        subprocess.call(('open', path))
+    elif platform.system() == 'Windows':  # Windows
+        os.startfile(path)
+    else:  # linux variants
+        subprocess.call(('xdg-open', path))

@@ -73,6 +73,10 @@ def choose_index(list: List[Any], title: str = "", message: str = "Select an opt
     return chosen
 
 
+def wait_for_user(message="Press ENTER to continue..."):
+    input(message)
+
+
 def index_to_ascii(index: int, zero_based: bool = True) -> str:
     if index < 0:
         raise IndexError("Index must be non-negative")
