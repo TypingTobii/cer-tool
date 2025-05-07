@@ -1,11 +1,18 @@
 import os
-import util as util
+import util
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+## TODO: possibly use `argparse`
 
 
-# Press the green button in the gutter to run the script.
+def about() -> None:
+    print(f"""cer-tool: Simplify grading upload to Moodle.
+The following commands are available:
+    setup <groups> <submissions>
+""")
+
+
+
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    help()
