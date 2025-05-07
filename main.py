@@ -25,7 +25,7 @@ def prepare(args: Namespace) -> None:
 
     # copy
     if extracted:
-        file_mgmt.extract_submissions(groups, config.FOLDER_NAME_UNZIP, path_target)
+        file_mgmt.extract_submissions(groups, config.FOLDER_NAME_ZIP, path_target)
         file_mgmt.cleanup()
     else:
         file_mgmt.extract_submissions(groups, path_submissions, path_target)
@@ -76,6 +76,8 @@ if __name__ == "__main__":
     subparsers = parser_main.add_subparsers(required=True,
                                             title="subcommands", description="The following commands are available:",
                                             help="command to be executed")
+    parser_main.add_argument("-v", "--verbose", action="store_true", required=False,
+                             help="output a message if a change to the file system is caused")
 
     # prepare
     parser_prepare = subparsers.add_parser("prepare", aliases=["pp"],
@@ -111,4 +113,6 @@ if __name__ == "__main__":
     parser_finish.set_defaults(func=finish)
 
     args = parser_main.parse_args()
+
+    config.VERBOSE = args.verbose
     args.func(args)
