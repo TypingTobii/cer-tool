@@ -1,6 +1,8 @@
 import sys
 from typing import List, Set, Any
 
+import config
+
 
 # handle unrecoverable errors
 def error(message: str) -> None:
@@ -17,6 +19,13 @@ def warning(message: str, consequence: str) -> None:
     if consequence:
         consequence = consequence + "." if consequence[-1] != "." else consequence
         print(f" → {consequence}", file=sys.stderr)
+
+
+def info(message: str) -> None:
+    if not config.VERBOSE:
+        return
+    message = message + "." if message[-1] != "." else message
+    print(message)
 
 
 def choose_option(options: Set[str], default: str | None = None, message="Select an option:") -> str:
