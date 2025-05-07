@@ -41,17 +41,17 @@ def create_folder(path: str) -> None:
 def unzip_if_not_folder(path: str) -> bool:
     if not Path(path).is_dir():
         with ZipFile(path) as zip:
-            zip.extractall(config.FOLDER_NAME_UNZIP)
-            util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_UNZIP}'.")
+            zip.extractall(config.FOLDER_NAME_ZIP)
+            util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
         return True
     else:
         return False
 
 
 def cleanup() -> None:
-    if os.path.exists(config.FOLDER_NAME_UNZIP):
-        shutil.rmtree(config.FOLDER_NAME_UNZIP)
-        util.info(f"'{config.FOLDER_NAME_UNZIP}' deleted.")
+    if os.path.exists(config.FOLDER_NAME_ZIP):
+        shutil.rmtree(config.FOLDER_NAME_ZIP)
+        util.info(f"'{config.FOLDER_NAME_ZIP}' deleted.")
 
 
 def _find_all_paths(keyword: str, path: Path) -> List[Path]:
