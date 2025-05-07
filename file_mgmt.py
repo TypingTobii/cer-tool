@@ -19,9 +19,17 @@ def create_file(path: str, text_content: List[str] = []) -> None:
     if os.path.exists(path):
         util.error(f"path '{path}' already exists, cannot create a new file.")
 
-    with open(path, "x") as f:
-        for line in text_content:
-            f.write(f"{line}\n")
+    with open(path, "x", encoding="utf-8") as f:
+        util.info(f"file '{path}' created.")
+        f.write( '\n'.join(text_content) )
+
+def read_file(path: str) -> List[str]:
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read().split('\n')
+
+def delete_file(path: str) -> None:
+    os.remove(path)
+    util.info(f"file '{path}' deleted.")
 
 
 def create_folder(path: str) -> None:
