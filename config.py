@@ -1,0 +1,8 @@
+FOLDER_NAME_UNZIP = "__CER_TOOL_TEMP_UNZIP__"
+
+FOLDER_NAME_SUBMISSIONS = "feedback"
+FOLDER_NAME_OUTPUT = "out"
+
+MOODLE_SUBMISSION_KEYWORD = "assignsubmission_file"
+
+MOODLE_FEEDBACK_STANDARD_TEXT = "<p><strong>- TH</strong></p>"
