@@ -7,26 +7,45 @@ from zipfile import ZipFile
 import util
 import config
 
-def create_folder_structure() -> None:
-    ## TODO: include parent path
-    if not os.path.exists(config.FOLDER_NAME_SUBMISSIONS):
-        os.mkdir(config.FOLDER_NAME_SUBMISSIONS)
-    if not os.path.exists(config.FOLDER_NAME_OUTPUT):
-        os.mkdir(config.FOLDER_NAME_OUTPUT)
+
+def check_path(path: str) -> None:
+    if not os.path.exists(path):
+        util.error(f"path '{path}' does not exist")
 
 
-def unzip(path: str) -> None:
-    with ZipFile(path) as zip:
-        zip.extractall(config.FOLDER_NAME_UNZIP)
+def create_file(path: str, text_content: List[str] = []) -> None:
+    if os.path.exists(path):
+        util.error(f"path '{path}' already exists, cannot create a new file.")
+
+    with open(path, "x") as f:
+        for line in text_content:
+            f.write(f"{line}\n")
+
+
+def create_folder(path: str) -> None:
+    if not Path(path).exists():
+        Path(path).mkdir(parents=True)
+        util.info(f"folder '{path}' created.")
+
+
+def unzip_if_not_folder(path: str) -> bool:
+    if not Path(path).is_dir():
+        with ZipFile(path) as zip:
+            zip.extractall(config.FOLDER_NAME_UNZIP)
+            util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_UNZIP}'.")
+        return True
+    else:
+        return False
 
 
 def cleanup() -> None:
     if os.path.exists(config.FOLDER_NAME_UNZIP):
         shutil.rmtree(config.FOLDER_NAME_UNZIP)
+        util.info(f"'{config.FOLDER_NAME_UNZIP}' deleted.")
 
 
 def _find_all_paths(keyword: str, path: Path) -> List[Path]:
-    return list( path.rglob(f"{keyword}") )
+    return list(path.rglob(f"{keyword}"))
 
 
 def _find_single_path(keyword: str, path: Path) -> Path:
@@ -59,19 +78,22 @@ def parse_groups_file(path: str) -> List[List[str]] | None:
         return None
 
 
-def flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> None:
+def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> None:
     files_in_folder = sorted(path_from.glob("*"))
     for i, file in enumerate(files_in_folder):
         i += 1
         if not file.is_dir():
             extension = file.suffix
             shutil.copy(file, path_to / f"{name_prefix}{i}{name_suffix}{extension}")
+            util.info(f"'{file.name}' copied to '{name_prefix}{i}{name_suffix}{extension}'.")
         else:
-            flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
+            _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
 
 
-
-def extract_submissions(groups: List[List[str]], path_from: Path, path_to: Path) -> List[int]:
+def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -> List[int]:
+    create_folder(path_to)
+    path_to = Path(path_to)
+    path_from = Path(path_from)
     extracted = []
 
     for groupIdx, group in enumerate(groups):
@@ -79,10 +101,10 @@ def extract_submissions(groups: List[List[str]], path_from: Path, path_to: Path)
             submission_folder = _find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
             moodle_id = submission_folder.name.split("_")[1]
 
-            prefix = f"Submission | G {groupIdx + 1}{util.index_to_ascii(memberIdx)} | {member} | {moodle_id} | File "
-            suffix = f"| ??? pts"
+            prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
+            suffix = f"_ --- pts"
 
-            flat_copy_all(path_from, path_to, prefix, suffix)
+            _flat_copy_all(submission_folder, path_to, prefix, suffix)
             extracted.append(moodle_id)
 
     return extracted
