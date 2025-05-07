@@ -12,7 +12,7 @@ def error(message: str) -> None:
 
 
 # print a warning after a recoverable error
-def warning(message: str, consequence: str) -> None:
+def warning(message: str, consequence: str = None) -> None:
     message = message + "." if message[-1] != "." else message
     print(f"WARNING: {message}", file=sys.stderr)
 
