@@ -1,5 +1,6 @@
 import os
 import platform
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -50,18 +51,27 @@ def unzip_if_not_folder(path: str) -> bool:
         return False
 
 
+def zip_folder(path: str, output_path: str) -> None:
+    if output_path.endswith(".zip"):
+        output_path = re.sub(r"(.*)\.zip", r"\1", path)
+    shutil.make_archive(output_path, "zip", path)
+    util.info(f"Zipped '{path}' to '{output_path}.zip'.")
+
+
 def cleanup() -> None:
     if os.path.exists(config.FOLDER_NAME_ZIP):
         shutil.rmtree(config.FOLDER_NAME_ZIP)
         util.info(f"'{config.FOLDER_NAME_ZIP}' deleted.")
 
 
-def _find_all_paths(keyword: str, path: Path) -> List[Path]:
+def _find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
+    if replace_non_ascii:
+        keyword = ''.join([c if ord(c) < 128 else '*' for c in keyword])
     return list(path.rglob(f"{keyword}"))
 
 
-def _find_single_path(keyword: str, path: Path) -> Path:
-    results = _find_all_paths(keyword, path)
+def _find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True) -> Path:
+    results = _find_all_paths(keyword, path, replace_non_ascii)
     i = 0
     if not results:
         util.error(f"No results found for '{keyword}'")
@@ -142,6 +152,33 @@ def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
         points = None
 
     return name, id, file_id, points
+
+
+def get_points_from_path(name: str, path: Path) -> float | None:
+    feedback_files = _find_all_paths(f"*{name}*", path)
+
+    points_sum = 0
+    points_found = False
+
+    for file in feedback_files:
+        try:
+            _, id, _, points = parse_submission_filename(file)
+            points_sum += float(points)
+            points_found = True
+        except ValueError or TypeError:
+            util.warning(f"No points found inside '{file.name}'.", "File will be skipped.")
+            continue
+
+    return points_sum if points_found else None
+
+
+def copy_feedback_files(name: str, path_from: Path, path_to: Path) -> None:
+    feedback_files = _find_all_paths(f"*{name}*", path_from)
+    for file in feedback_files:
+        student_name, student_id, file_id, _ = parse_submission_filename(file)
+        filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}{file.suffix}"
+        shutil.copy2(file, path_to / filename)
+        util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
 
 
 def open_file(path: str) -> None:
