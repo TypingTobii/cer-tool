@@ -172,13 +172,15 @@ def get_points_from_path(name: str, path: Path) -> float | None:
     return points_sum if points_found else None
 
 
-def copy_feedback_files(name: str, path_from: Path, path_to: Path) -> None:
+def copy_feedback_files(name: str, path_from: Path, path_to: Path) -> int:
     feedback_files = _find_all_paths(f"*{name}*", path_from)
     for file in feedback_files:
         student_name, student_id, file_id, _ = parse_submission_filename(file)
         filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}{file.suffix}"
         shutil.copy2(file, path_to / filename)
         util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
+
+    return len(feedback_files)
 
 
 def open_file(path: str) -> None:
