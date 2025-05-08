@@ -21,11 +21,13 @@ def create_file(path: str, text_content: List[str] = []) -> None:
 
     with open(path, "x", encoding="utf-8") as f:
         util.info(f"file '{path}' created.")
-        f.write( '\n'.join(text_content) )
+        f.write('\n'.join(text_content))
+
 
 def read_file(path: str) -> List[str]:
     with open(path, "r", encoding="utf-8") as f:
         return f.read().split('\n')
+
 
 def delete_file(path: str) -> None:
     os.remove(path)
@@ -118,6 +120,28 @@ def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -
             extracted.append(moodle_id)
 
     return extracted
+
+
+def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
+    filename_split = path.stem.split('_')
+
+    # try to extract the individual parts of the filename
+    name = id = file_id = points = None
+    try:
+        name = filename_split[2]
+        id = filename_split[3]
+        file_id = filename_split[4].replace("File", "").strip()
+        points = filename_split[5].replace("pts", "").replace(',', '.').strip()
+    except IndexError:
+        raise ValueError(f"Unsupported Filename: {path.stem}")
+
+    # try to decode points
+    try:
+        points = float(points)
+    except ValueError:
+        points = None
+
+    return name, id, file_id, points
 
 
 def open_file(path: str) -> None:
