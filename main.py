@@ -12,7 +12,7 @@ import argparse
 def prepare(args: Namespace) -> None:
     path_groups: str = args.groups
     path_submissions: str = args.submissions
-    path_target: str = args.target
+    path_out: str = args.out
 
     file_mgmt.check_path(path_groups)
     file_mgmt.check_path(path_submissions)
@@ -25,10 +25,10 @@ def prepare(args: Namespace) -> None:
 
     # copy
     if extracted:
-        file_mgmt.extract_submissions(groups, config.FOLDER_NAME_ZIP, path_target)
+        file_mgmt.extract_submissions(groups, config.FOLDER_NAME_ZIP, path_out)
         file_mgmt.cleanup()
     else:
-        file_mgmt.extract_submissions(groups, path_submissions, path_target)
+        file_mgmt.extract_submissions(groups, path_submissions, path_out)
 
 
 def edit_feedback(args: Namespace) -> None:
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     parser_prepare_group_input.add_argument("-s", "--submissions", required=True,
                                             help="path to a zip file or a folder containing the submissions")
 
-    parser_prepare.add_argument("-t", "--target", required=False, default="./submissions",
+    parser_prepare.add_argument("-o", "--out", required=False, default="./submissions",
                                 help="custom output folder")
 
     # edit_feedback
