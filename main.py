@@ -101,6 +101,7 @@ if __name__ == "__main__":
     parser_feedback_group_input = parser_feedback.add_argument_group("input files")
     parser_feedback_group_input.add_argument("-t", "--grading-sheet", required=True,
                                              help="path to the grading sheet to edit")
+    # TODO custom output
     parser_feedback.add_argument("student_name", help="partial or complete name of the student whose feedback should be edited")
     parser_feedback.set_defaults(func=edit_feedback)
 
@@ -108,7 +109,14 @@ if __name__ == "__main__":
     parser_finish = subparsers.add_parser("finish", aliases=["f"],
                                           help="export feedback zip and grading sheet to upload to moodle",
                                           description="export feedback zip and grading sheet to upload to moodle")
-    # TODO
+    parser_finish_group_input = parser_finish.add_argument_group("input files")
+    parser_finish_group_input.add_argument("-g", "--groups", required=True,
+                                           help="path to text file containing groups to correct")
+    parser_finish_group_input.add_argument("-t", "--grading-sheet", required=True,
+                                           help="path to the grading sheet to edit")
+    parser_finish_group_input.add_argument("-f", "--feedback", required=False, default="./submissions",
+                                           help="path to the folder containing the corrected submissions")
+    # TODO 2x out
     # parser_finish.add_argument(...)
     parser_finish.set_defaults(func=finish)
 
