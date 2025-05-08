@@ -33,7 +33,8 @@ def prepare(args: Namespace) -> None:
 
 def edit_feedback(args: Namespace) -> None:
     path_grading_sheet: str = args.grading_sheet
-    keyword: str = args.student_name
+    keyword: str = ' '.join(args.student_name)
+    out: str = args.out or args.grading_sheet
 
     file_mgmt.check_path(path_grading_sheet)
 
@@ -62,7 +63,7 @@ def edit_feedback(args: Namespace) -> None:
 
     # save changes
     gs.set_comment(id, feedback_new)
-    gs.save()
+    gs.save(out)
 
 
 def finish(args: Namespace) -> None:
@@ -101,8 +102,9 @@ if __name__ == "__main__":
     parser_feedback_group_input = parser_feedback.add_argument_group("input files")
     parser_feedback_group_input.add_argument("-t", "--grading-sheet", required=True,
                                              help="path to the grading sheet to edit")
-    # TODO custom output
-    parser_feedback.add_argument("student_name", help="partial or complete name of the student whose feedback should be edited")
+    parser_feedback.add_argument("-o", "--out", required=False, help="custom output file (default: overwrite input file)")
+    parser_feedback.add_argument("student_name", nargs='+',
+                                 help="partial or complete name of the student whose feedback should be edited")
     parser_feedback.set_defaults(func=edit_feedback)
 
     # finish

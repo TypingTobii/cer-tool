@@ -16,8 +16,9 @@ class GradingSheet:
         self.data = pd.read_csv(path, index_col=0)
         self.data = self.data.fillna('')
 
-    def save(self):
-        self.data.to_csv(self.path, quoting=csv.QUOTE_ALL)
+    def save(self, path: str | None = None):
+        output_path = path if path else self.path
+        self.data.to_csv(output_path, quoting=csv.QUOTE_ALL)
 
     def __str__(self) -> str:
         return f"<grading scheme @'{self.path}' containing {self.data} entries>"
