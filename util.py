@@ -18,7 +18,7 @@ def warning(message: str, consequence: str = None) -> None:
 
     if consequence:
         consequence = consequence + "." if consequence[-1] != "." else consequence
-        print(f" → {consequence}", file=sys.stderr)
+        print(f" ↪ {consequence}", file=sys.stderr)
 
 
 def info(message: str) -> None:
