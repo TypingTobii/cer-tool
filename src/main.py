@@ -115,7 +115,6 @@ def finish(args: Namespace) -> None:
     gs.save(out_grading_sheet)
 
     # create a zip file with feedback files and cleanup
-    print("OUT_FEEDBACK:", out_feedback)
     file_mgmt.zip_folder(config.FOLDER_NAME_ZIP, out_feedback)
     file_mgmt.cleanup()
 
