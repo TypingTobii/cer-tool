@@ -73,8 +73,9 @@ class GradingSheet:
 
     def filter(self, ids: List[int]) -> None:
         # map ids to actual entries within grading sheet
-        ids = map(lambda id: f"Teilnehmer/in{id}", ids)
-        self.data = self.data.loc[self.data.index.isin(ids)]
+        translated_ids = map(lambda id: f"Teilnehmer/in{id}", ids)
+        self.data = self.data.loc[self.data.index.isin(translated_ids)]
+        util.info(f"Grading sheet filtered to only include the following IDs: {ids}")
 
 
 def _decode_comment(feedback: str) -> List[str]:
