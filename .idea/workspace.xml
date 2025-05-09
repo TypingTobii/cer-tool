@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="implement finish command">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file_mgmt.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/file_mgmt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/grading_sheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grading_sheet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.py" afterDir="false" />
-    </list>
+    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="add PowerShell wrapper" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -150,7 +143,7 @@
       <workItem from="1746714463908" duration="7219000" />
       <workItem from="1746784843265" duration="773000" />
       <workItem from="1746787089658" duration="5000" />
-      <workItem from="1746787238510" duration="3181000" />
+      <workItem from="1746787238510" duration="3535000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -336,7 +329,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746790032271</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="add PowerShell wrapper">
+      <option name="closed" value="true" />
+      <created>1746790699739</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1746790699739</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -374,7 +375,8 @@
     <MESSAGE value="implement submission filename 'parsing'" />
     <MESSAGE value="some polishing on the edit-feedback command&#10;- quoting the student's name is not needed&#10;- add option to specify an output file instead of overwriting" />
     <MESSAGE value="implement finish command" />
-    <option name="LAST_COMMIT_MESSAGE" value="implement finish command" />
+    <MESSAGE value="add PowerShell wrapper" />
+    <option name="LAST_COMMIT_MESSAGE" value="add PowerShell wrapper" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/cer_tool$python_main_py_pp__g___test_tut_TH_txt__s___test_TH_zip__t___test_out.coverage" NAME="python main.py pp -g .\test\tut_TH.txt -s .\test\TH.zip -t .\test\out Coverage Results" MODIFIED="1746635965290" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
