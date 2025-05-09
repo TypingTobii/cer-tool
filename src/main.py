@@ -71,7 +71,7 @@ def finish(args: Namespace) -> None:
     path_grading_sheet: str = args.grading_sheet
     path_feedback: str = args.feedback
     out_feedback: str = args.out_feedback
-    out_grading_sheet: str = args.out_grading_sheet or re.sub(r"(.*).csv", r"\1.out.csv", path_grading_sheet)
+    out_grading_sheet: str = args.out_grading_sheet or re.sub(r"(.*).csv", r"_out_\1.csv", path_grading_sheet)
 
     file_mgmt.check_path(path_groups)
     file_mgmt.check_path(path_grading_sheet)
@@ -167,10 +167,10 @@ if __name__ == "__main__":
     parser_finish_group_input.add_argument("-f", "--feedback", required=False, default="./submissions",
                                            help="path to the folder containing the corrected submissions")
 
-    parser_finish.add_argument("-of", "--out-feedback", required=False, default="./feedback.zip",
-                               help="custom path for output feedback zip (default: ./feedback.zip)")
+    parser_finish.add_argument("-of", "--out-feedback", required=False, default="./_out_feedback.zip",
+                               help="custom path for output feedback zip (default: ./_out_feedback.zip)")
     parser_finish.add_argument("-ot", "--out-grading-sheet", required=False,
-                               help="custom path for output grading sheet (default: GRADING_SHEET.out.csv)")
+                               help="custom path for output grading sheet (default: ./_out_GRADING_SHEET.csv)")
     parser_finish.set_defaults(func=finish)
 
     args = parser_main.parse_args()
