@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Path to config file
-CONFIG_FILE="paths.config"
+CONFIG_FILE="cer-tool.paths"
 
 # Exit if config file does not exist
 if [[ ! -f "$CONFIG_FILE" ]]; then

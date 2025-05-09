@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="add PowerShell wrapper">
-      <change afterPath="$PROJECT_DIR$/cer-tool.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paths.config" beforeDir="false" afterPath="$PROJECT_DIR$/paths.config" afterDir="false" />
-    </list>
+    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="add PowerShell wrapper" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,9 +20,15 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;TypingTobii&quot;
+  }
+}</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/TypingTobii/cer-tool&quot;,
+    &quot;url&quot;: &quot;git@github.com:TypingTobii/cer-tool.git&quot;,
     &quot;accountId&quot;: &quot;6cf6fbdd-e2d8-406b-93b6-7acadd886685&quot;
   }
 }</component>

@@ -1,5 +1,5 @@
 # Path to the config file
-$configPath = "paths.config"
+$configPath = "cer-tools.paths"
 
 # Check if config file exists
 if (-Not (Test-Path $configPath)) {
