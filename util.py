@@ -21,10 +21,11 @@ def warning(message: str, consequence: str = None) -> None:
         print(f" ↪ {consequence}", file=sys.stderr)
 
 
-def info(message: str) -> None:
-    if not config.VERBOSE:
+def info(message: str, always_display: bool = False) -> None:
+    if not (always_display or config.VERBOSE):
         return
-    message = message + "." if message[-1] != "." else message
+    if message:
+        message = message + "." if message[-1] != "." else message
     print(message)
 
 

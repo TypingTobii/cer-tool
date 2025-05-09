@@ -6,7 +6,7 @@ FOLDER_NAME_OUTPUT = "out"
 
 MOODLE_SUBMISSION_KEYWORD = "assignsubmission_file"
 
-MOODLE_FEEDBACK_STANDARD_TEXT = "<strong>- TH</strong>"
+MOODLE_FEEDBACK_STANDARD_TEXT = ["<strong>- TH</strong>"]
 MOODLE_FEEDBACK_FILENAME_PREFIX = "Feedbackdatei"
 
 VERBOSE = True

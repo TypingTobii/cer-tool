@@ -53,7 +53,7 @@ def unzip_if_not_folder(path: str) -> bool:
 
 def zip_folder(path: str, output_path: str) -> None:
     if output_path.endswith(".zip"):
-        output_path = re.sub(r"(.*)\.zip", r"\1", path)
+        output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
     shutil.make_archive(output_path, "zip", path)
     util.info(f"Zipped '{path}' to '{output_path}.zip'.")
 
@@ -154,8 +154,9 @@ def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
     return name, id, file_id, points
 
 
-def get_points_from_path(name: str, path: Path) -> float | None:
-    feedback_files = _find_all_paths(f"*{name}*", path)
+def get_points_from_path(keyword: str, path: str) -> float | None:
+    path = Path(path)
+    feedback_files = _find_all_paths(f"*_{keyword}_*", path)
 
     points_sum = 0
     points_found = False
@@ -166,21 +167,30 @@ def get_points_from_path(name: str, path: Path) -> float | None:
             points_sum += float(points)
             points_found = True
         except ValueError or TypeError:
-            util.warning(f"No points found inside '{file.name}'.", "File will be skipped.")
+            util.warning(f"No points found inside '{file.name}'.", "File will not be considered for calculating points.")
             continue
 
     return points_sum if points_found else None
 
 
-def copy_feedback_files(name: str, path_from: Path, path_to: Path) -> int:
-    feedback_files = _find_all_paths(f"*{name}*", path_from)
+def copy_feedback_files(keyword: str, path_from: str, path_to: str) -> int:
+    path_from = Path(path_from)
+    path_to = Path(path_to)
+    feedback_files = _find_all_paths(f"*_{keyword}_*", path_from)
+    copied = 0
+
     for file in feedback_files:
-        student_name, student_id, file_id, _ = parse_submission_filename(file)
+        student_name, student_id, file_id, points = parse_submission_filename(file)
+        if not points:
+            util.warning(f"No points found inside '{file.name}'.", "File will not be included as feedback.")
+            continue
+
         filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}{file.suffix}"
         shutil.copy2(file, path_to / filename)
+        copied += 1
         util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
 
-    return len(feedback_files)
+    return copied
 
 
 def open_file(path: str) -> None:

@@ -1,3 +1,5 @@
+import itertools
+import re
 from argparse import Namespace
 from pathlib import Path
 from typing import List
@@ -67,9 +69,57 @@ def edit_feedback(args: Namespace) -> None:
 
 
 def finish(args: Namespace) -> None:
-    print("Hello from finish")
-    print(f"My args are: {args}")
-    return
+    path_groups: str = args.groups
+    path_grading_sheet: str = args.grading_sheet
+    path_feedback: str = args.feedback
+    out_feedback: str = args.out_feedback
+    out_grading_sheet: str = args.out_grading_sheet or re.sub(r"(.*).csv", r"\1.out.csv", path_grading_sheet)
+
+    file_mgmt.check_path(path_groups)
+    file_mgmt.check_path(path_grading_sheet)
+    file_mgmt.check_path(path_feedback)
+
+    gs = grading_sheet.GradingSheet(path_grading_sheet)
+    groups = file_mgmt.parse_groups_file(path_groups)
+    members = list(itertools.chain(*groups))
+
+    # create a temporary folder for feedback files
+    file_mgmt.create_folder(config.FOLDER_NAME_ZIP)
+
+    processed_successfully = 0
+    for member in members:
+        # get member's id
+        id = gs.select_participant(member)
+
+        # process member's points
+        points = file_mgmt.get_points_from_path(str(id), path_feedback)
+        if not points:
+            util.warning(f"Got not points for student '{member}' (id: {id}).", "Student will be skipped.")
+            continue
+
+        # process feedback file/s
+        files_copied = file_mgmt.copy_feedback_files(str(id), path_feedback, config.FOLDER_NAME_ZIP)
+        if files_copied == 0:
+            util.warning(f"No feedback files copied for student '{member}' (id: {id}).", "Student will be skipped.")
+            continue
+
+        # insert points and feedback into the grading sheet
+        gs.set_points(id, points)
+        gs.append_comment(id, config.MOODLE_FEEDBACK_STANDARD_TEXT)
+
+        processed_successfully += 1
+        util.info(f"Successfully processed student {member:>25} (id: {id}): Found {points:6.2f} points, copied {files_copied} file/s.", True)
+
+    util.info("", True)
+    util.info(f"{processed_successfully} of {len(members)} students processed successfully.", True)
+
+    # save changes to the grading sheet
+    gs.save(out_grading_sheet)
+
+    # create a zip file with feedback files and cleanup
+    print("OUT_FEEDBACK:", out_feedback)
+    file_mgmt.zip_folder(config.FOLDER_NAME_ZIP, out_feedback)
+    file_mgmt.cleanup()
 
 
 if __name__ == "__main__":
@@ -108,9 +158,10 @@ if __name__ == "__main__":
     parser_feedback.set_defaults(func=edit_feedback)
 
     # finish
-    parser_finish = subparsers.add_parser("finish", aliases=["f"],
+    parser_finish = subparsers.add_parser("finish", aliases=["fs"],
                                           help="export feedback zip and grading sheet to upload to moodle",
                                           description="export feedback zip and grading sheet to upload to moodle")
+
     parser_finish_group_input = parser_finish.add_argument_group("input files")
     parser_finish_group_input.add_argument("-g", "--groups", required=True,
                                            help="path to text file containing groups to correct")
@@ -118,8 +169,11 @@ if __name__ == "__main__":
                                            help="path to the grading sheet to edit")
     parser_finish_group_input.add_argument("-f", "--feedback", required=False, default="./submissions",
                                            help="path to the folder containing the corrected submissions")
-    # TODO 2x out
-    # parser_finish.add_argument(...)
+
+    parser_finish.add_argument("-of", "--out-feedback", required=False, default="./feedback.zip",
+                               help="custom path for output feedback zip (default: ./feedback.zip)")
+    parser_finish.add_argument("-ot", "--out-grading-sheet", required=False,
+                               help="custom path for output grading sheet (default: GRADING_SHEET.out.csv)")
     parser_finish.set_defaults(func=finish)
 
     args = parser_main.parse_args()
