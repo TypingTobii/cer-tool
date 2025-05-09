@@ -1,5 +1,6 @@
 # Path to the config file
-$configPath = "cer-tools.paths"
+$SCRIPT_DIR = $PSScriptRoot
+$configPath = "$SCRIPT_DIR\cer-tool.paths"
 
 # Check if config file exists
 if (-Not (Test-Path $configPath)) {
