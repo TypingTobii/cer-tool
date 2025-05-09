@@ -71,6 +71,11 @@ class GradingSheet:
             index = util.choose_index(list(map(lambda l: " - ".join(l), results)), "Multiple results found:")
             return int(results[index][0])
 
+    def filter(self, ids: List[int]) -> None:
+        # map ids to actual entries within grading sheet
+        ids = map(lambda id: f"Teilnehmer/in{id}", ids)
+        self.data = self.data.loc[self.data.index.isin(ids)]
+
 
 def _decode_comment(feedback: str) -> List[str]:
     feedback = re.split(r'</?p>', feedback)

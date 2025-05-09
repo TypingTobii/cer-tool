@@ -85,6 +85,7 @@ def finish(args: Namespace) -> None:
     file_mgmt.create_folder(config.FOLDER_NAME_ZIP)
 
     processed_successfully = 0
+    updated_ids = []
     for member in members:
         # get member's id
         id = gs.select_participant(member)
@@ -106,12 +107,14 @@ def finish(args: Namespace) -> None:
         gs.append_comment(id, config.MOODLE_FEEDBACK_STANDARD_TEXT)
 
         processed_successfully += 1
+        updated_ids.append(id)
         util.info(f"Successfully processed student {member:>25} (id: {id}): Found {points:6.2f} points, copied {files_copied} file/s.", True)
 
     util.info("", True)
     util.info(f"{processed_successfully} of {len(members)} students processed successfully.", True)
 
     # save changes to the grading sheet
+    gs.filter(updated_ids)
     gs.save(out_grading_sheet)
 
     # create a zip file with feedback files and cleanup
