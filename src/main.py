@@ -1,8 +1,6 @@
 import itertools
 import re
 from argparse import Namespace
-from pathlib import Path
-from typing import List
 
 import config
 import file_mgmt
