@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Path to config file
-CONFIG_FILE="cer-tool.paths"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+CONFIG_FILE="$SCRIPT_DIR/cer-tool.paths"
 
 # Exit if config file does not exist
 if [[ ! -f "$CONFIG_FILE" ]]; then
