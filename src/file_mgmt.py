@@ -181,7 +181,7 @@ def copy_feedback_files(keyword: str, path_from: str, path_to: str) -> int:
 
     for file in feedback_files:
         student_name, student_id, file_id, points = parse_submission_filename(file)
-        if not points:
+        if points is not None:
             util.warning(f"No points found inside '{file.name}'.", "File will not be included as feedback.")
             continue
 
