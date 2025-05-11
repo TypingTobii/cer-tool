@@ -92,7 +92,7 @@ def finish(args: Namespace) -> None:
 
         # process member's points
         points = file_mgmt.get_points_from_path(str(id), path_feedback)
-        if not points:
+        if points is None:
             util.warning(f"Got not points for student '{member}' (id: {id}).", "Student will be skipped.")
             continue
 
