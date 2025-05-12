@@ -18,13 +18,16 @@ def check_path(path: str) -> None:
 
 
 def create_file(path: str, text_content: List[str] = []) -> None:
+    mode = "x"
+
     if os.path.exists(path):
         option = util.choose_option({"y", "n"}, "y", f"path '{path}' already exists. Overwrite?")
         if option != "y":
             util.error("Aborted by user")
+        else:
+            mode = "w"
 
-
-    with open(path, "x", encoding="utf-8") as f:
+    with open(path, mode, encoding="utf-8") as f:
         util.info(f"file '{path}' created.")
         f.write('\n'.join(text_content))
 
