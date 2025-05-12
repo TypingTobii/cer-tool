@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="add verbose/debug info">
+    <list default="true" id="edec4894-dd57-429b-946b-dd5ef24ec9f3" name="Changes" comment="fix: 0 points are now supported">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/file_mgmt.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/file_mgmt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,40 +51,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.file_mgmt.executor&quot;: &quot;Run&quot;,
-    &quot;Python.grading_sheet.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.python main.py command.executor&quot;: &quot;Run&quot;,
-    &quot;Python.python main.py pp -g .\\test\\tut_TH.txt -s .\\test\\TH.zip -t .\\test\\out.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.python main.py prepare 1 2 3.executor&quot;: &quot;Run&quot;,
-    &quot;Python.python main.py prepare.executor&quot;: &quot;Run&quot;,
-    &quot;Python.scratch.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.util.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Tobii/dev/PyCharmProjects/cer-tool/test&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.file_mgmt.executor": "Run",
+    "Python.grading_sheet.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.python main.py command.executor": "Run",
+    "Python.python main.py pp -g .\\test\\tut_TH.txt -s .\\test\\TH.zip -t .\\test\\out.executor": "Debug",
+    "Python.python main.py prepare 1 2 3.executor": "Run",
+    "Python.python main.py prepare.executor": "Run",
+    "Python.scratch.executor": "Run",
+    "Python.util.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "/Users/tobii/Library/Application Support/JetBrains/PyCharm2025.1/scratches",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Python&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$APPLICATION_CONFIG_DIR$/scratches" />
+      <recent name="$PROJECT_DIR$/test" />
       <recent name="C:\Users\Tobii\dev\PyCharmProjects\cer-tool\test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -156,6 +161,8 @@
       <workItem from="1746791809748" duration="1445000" />
       <workItem from="1746794161612" duration="2825000" />
       <workItem from="1746998343041" duration="1809000" />
+      <workItem from="1747004169178" duration="411000" />
+      <workItem from="1747005289953" duration="5710000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -413,7 +420,31 @@
       <option name="project" value="LOCAL" />
       <updated>1746796920332</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="fix: 0 points are now supported">
+      <option name="closed" value="true" />
+      <created>1747004305904</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1747004305905</updated>
+    </task>
+    <task id="LOCAL-00034" summary="fix: 0 points are now supported">
+      <option name="closed" value="true" />
+      <created>1747004401845</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1747004401845</updated>
+    </task>
+    <task id="LOCAL-00035" summary="fix: 0 points are now supported">
+      <option name="closed" value="true" />
+      <created>1747004446246</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1747004446246</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -431,7 +462,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add common I/O and helper functions" />
     <MESSAGE value="add simple config" />
     <MESSAGE value="add functions for file-management-related tasks&#10;i.e., zip/unzip, parse group text file, copy and rename submission files" />
     <MESSAGE value="start adding main code" />
@@ -456,17 +486,18 @@
     <MESSAGE value="change default parameters for finish command" />
     <MESSAGE value="update finalise command to only include changed entries in the grading sheet" />
     <MESSAGE value="add verbose/debug info" />
-    <option name="LAST_COMMIT_MESSAGE" value="add verbose/debug info" />
+    <MESSAGE value="fix: 0 points are now supported" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 0 points are now supported" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/cer_tool$python_main_py_pp__g___test_tut_TH_txt__s___test_TH_zip__t___test_out.coverage" NAME="python main.py pp -g .\test\tut_TH.txt -s .\test\TH.zip -t .\test\out Coverage Results" MODIFIED="1746635965290" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cer_tool$file_mgmt.coverage" NAME="file_mgmt Coverage Results" MODIFIED="1746651300027" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cer_tool$file_mgmt.coverage" NAME="file_mgmt Coverage Results" MODIFIED="1747012231858" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/cer_tool$grading_sheet.coverage" NAME="grading_sheet Coverage Results" MODIFIED="1746652767879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cer_tool$python_main_py_prepare.coverage" NAME="python main.py prepare Coverage Results" MODIFIED="1746629645656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cer_tool$python_main_py_command.coverage" NAME="python main.py command Coverage Results" MODIFIED="1746629126293" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cer_tool$python_main_py_prepare.coverage" NAME="python main.py prepare Coverage Results" MODIFIED="1746629645656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cer_tool$python_main_py_pp__g___test_tut_TH_txt__s___test_TH_zip__t___test_out.coverage" NAME="python main.py pp -g .\test\tut_TH.txt -s .\test\TH.zip -t .\test\out Coverage Results" MODIFIED="1746635965290" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cer_tool$main.coverage" NAME="main Coverage Results" MODIFIED="1746714915074" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cer_tool$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1747011804164" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/cer_tool$util.coverage" NAME="util Coverage Results" MODIFIED="1746582568551" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cer_tool$python_main_py_prepare_1_2_3.coverage" NAME="python main.py prepare 1 2 3 Coverage Results" MODIFIED="1746631394187" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cer_tool$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1746785203261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
   </component>
 </project>

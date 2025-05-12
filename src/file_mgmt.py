@@ -3,8 +3,9 @@ import platform
 import re
 import shutil
 import subprocess
+import zipfile
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 from zipfile import ZipFile
 
 import util
@@ -56,6 +57,46 @@ def zip_folder(path: str, output_path: str) -> None:
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
     shutil.make_archive(output_path, "zip", path)
     util.info(f"Zipped '{path}' to '{output_path}.zip'.")
+
+
+def zip_folder_with_limit(path: str, output_path: str, limit_bytes : int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> None:
+
+    def partition(files: List[Tuple[Path, int]], acc_size: int = 0, acc: List[Path] = None) -> List[List[Path]]:
+        if not files:
+            return [acc] if acc is not None else []
+
+        file, size = files[0]
+
+        if size > limit_bytes:
+            util.warning(f"file '{file}' exceeds limit of {limit_bytes} bytes.", "file will be skipped.")
+            return partition(files[1:], acc_size, acc)
+
+        if size + acc_size <= limit_bytes:  # insert file into current sub-list
+            new_acc = acc + [file] if acc is not None else [file]
+            return partition(files[1:], size + acc_size, new_acc)
+        else:  # insert file into new sub-list
+            rest = partition(files[1:], size, [file])
+            return [acc] + rest
+
+    def zip_files(files: List[Path], suffix: str) -> None:
+        with ZipFile(f"{output_path}{suffix}.zip", "w", compression=zipfile.ZIP_DEFLATED) as zip:
+            for file in files:
+                zip.write(file, file.name)
+                util.info(f"Zipped '{file}' to '{output_path}{suffix}.zip'.")
+
+
+    if output_path.endswith(".zip"):
+        output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
+
+    files_to_zip = list(Path(path).iterdir())
+    files_to_zip = list(map(lambda p: (p, p.stat().st_size), files_to_zip)) # zip with file size
+
+    partitioned_files = partition(files_to_zip)
+
+    for i, partition in enumerate(partitioned_files):
+        total_zips = len(partitioned_files)
+        suffix = f"_{i + 1}_of_{total_zips}" if total_zips > 0 else ""
+        zip_files(partition, suffix)
 
 
 def cleanup() -> None:
