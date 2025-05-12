@@ -227,10 +227,11 @@ def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_n
             util.warning(f"No points found inside '{file.name}'.", "File will not be included as feedback.")
             continue
 
+        filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}"
         if submission_name:
-            filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{submission_name}_{file_id}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
-        else:
-            filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
+            filename += f"_{submission_name}"
+        filename += f"{util.index_to_ascii(file_id)}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
+
         shutil.copy2(file, path_to / filename)
         copied += 1
         util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
