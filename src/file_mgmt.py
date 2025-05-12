@@ -59,8 +59,7 @@ def zip_folder(path: str, output_path: str) -> None:
     util.info(f"Zipped '{path}' to '{output_path}.zip'.")
 
 
-def zip_folder_with_limit(path: str, output_path: str, limit_bytes : int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> None:
-
+def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
     def partition(files: List[Tuple[Path, int]], acc_size: int = 0, acc: List[Path] = None) -> List[List[Path]]:
         if not files:
             return [acc] if acc is not None else []
@@ -84,19 +83,20 @@ def zip_folder_with_limit(path: str, output_path: str, limit_bytes : int = confi
                 zip.write(file, file.name)
                 util.info(f"Zipped '{file}' to '{output_path}{suffix}.zip'.")
 
-
     if output_path.endswith(".zip"):
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
 
     files_to_zip = list(Path(path).iterdir())
-    files_to_zip = list(map(lambda p: (p, p.stat().st_size), files_to_zip)) # zip with file size
+    files_to_zip = list(map(lambda p: (p, p.stat().st_size), files_to_zip))  # zip with file size
 
     partitioned_files = partition(files_to_zip)
+    total_zips = len(partitioned_files)
 
     for i, partition in enumerate(partitioned_files):
-        total_zips = len(partitioned_files)
         suffix = f"_{i + 1}_of_{total_zips}" if total_zips > 0 else ""
         zip_files(partition, suffix)
+
+    return total_zips
 
 
 def cleanup() -> None:
@@ -208,13 +208,14 @@ def get_points_from_path(keyword: str, path: str) -> float | None:
             points_sum += float(points)
             points_found = True
         except ValueError or TypeError:
-            util.warning(f"No points found inside '{file.name}'.", "File will not be considered for calculating points.")
+            util.warning(f"No points found inside '{file.name}'.",
+                         "File will not be considered for calculating points.")
             continue
 
     return points_sum if points_found else None
 
 
-def copy_feedback_files(keyword: str, path_from: str, path_to: str) -> int:
+def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_name: str = "") -> int:
     path_from = Path(path_from)
     path_to = Path(path_to)
     feedback_files = _find_all_paths(f"*_{keyword}_*", path_from)
@@ -226,7 +227,10 @@ def copy_feedback_files(keyword: str, path_from: str, path_to: str) -> int:
             util.warning(f"No points found inside '{file.name}'.", "File will not be included as feedback.")
             continue
 
-        filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}{file.suffix}"
+        if submission_name:
+            filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{submission_name}_{file_id}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
+        else:
+            filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}_{file_id}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
         shutil.copy2(file, path_to / filename)
         copied += 1
         util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")

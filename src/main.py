@@ -72,6 +72,7 @@ def finish(args: Namespace) -> None:
     path_feedback: str = args.feedback
     out_feedback: str = args.out_feedback
     out_grading_sheet: str = args.out_grading_sheet or re.sub(r"(.*).csv", r"_out_\1.csv", path_grading_sheet)
+    submission_name: str = args.submission_name
 
     file_mgmt.check_path(path_groups)
     file_mgmt.check_path(path_grading_sheet)
@@ -97,7 +98,7 @@ def finish(args: Namespace) -> None:
             continue
 
         # process feedback file/s
-        files_copied = file_mgmt.copy_feedback_files(str(id), path_feedback, config.FOLDER_NAME_ZIP)
+        files_copied = file_mgmt.copy_feedback_files(str(id), path_feedback, config.FOLDER_NAME_ZIP, submission_name)
         if files_copied == 0:
             util.warning(f"No feedback files copied for student '{member}' (id: {id}).", "Student will be skipped.")
             continue
@@ -119,8 +120,9 @@ def finish(args: Namespace) -> None:
 
     # create a zip file with feedback files and cleanup
     util.info("", True)
-    util.info("Creating zip file...", True)
-    file_mgmt.zip_folder_with_limit(config.FOLDER_NAME_ZIP, out_feedback)
+    util.info("Creating zip file/s...", True)
+    created_zips = file_mgmt.zip_folder_with_limit(config.FOLDER_NAME_ZIP, out_feedback)
+    util.info(f"{created_zips} zip files created.", True)
     file_mgmt.cleanup()
 
 
@@ -176,6 +178,8 @@ if __name__ == "__main__":
                                help="custom path for output feedback zip (default: ./_out_feedback.zip)")
     parser_finish.add_argument("-ot", "--out-grading-sheet", required=False,
                                help="custom path for output grading sheet (default: ./_out_GRADING_SHEET.csv)")
+    parser_finish.add_argument("-sn", "--submission-name", required=False,
+                               help="name of the submission to be included in the feedback file names (default: '')")
     parser_finish.set_defaults(func=finish)
 
     args = parser_main.parse_args()
