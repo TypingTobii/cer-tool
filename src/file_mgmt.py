@@ -230,7 +230,7 @@ def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_n
         filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}"
         if submission_name:
             filename += f"_{submission_name}"
-        filename += f"_{file_id}_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
+        filename += f"_(Datei {file_id})_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
 
         shutil.copy2(file, path_to / filename)
         copied += 1
