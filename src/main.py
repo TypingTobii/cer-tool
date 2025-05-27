@@ -1,6 +1,7 @@
 import itertools
 import re
 from argparse import Namespace
+from pathlib import Path
 
 import config
 import file_mgmt
@@ -71,8 +72,11 @@ def finish(args: Namespace) -> None:
     path_grading_sheet: str = args.grading_sheet
     path_feedback: str = args.feedback
     out_feedback: str = args.out_feedback
-    out_grading_sheet: str = args.out_grading_sheet or re.sub(r"(.*).csv", r"_out_\1.csv", path_grading_sheet)
     submission_name: str = args.submission_name
+    out_grading_sheet: str = args.out_grading_sheet
+    if not out_grading_sheet:
+        p = Path(path_grading_sheet)
+        out_grading_sheet = str(p.with_stem(f"_out_{p.stem}"))
 
     file_mgmt.check_path(path_groups)
     file_mgmt.check_path(path_grading_sheet)
