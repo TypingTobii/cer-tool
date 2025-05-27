@@ -1,1 +1,4 @@
 /test/**
+
+# ignore some JetBrains files
+.idea/workspace.xml
