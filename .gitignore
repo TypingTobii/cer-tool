@@ -2,3 +2,9 @@
 
 # ignore some JetBrains files
 .idea/workspace.xml
+
+# ignore MacOS files
+**/.DS_Store
+
+# ignore Python cache files
+**/__pycache__
