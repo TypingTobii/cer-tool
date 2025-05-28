@@ -4,9 +4,14 @@ import re
 import shutil
 import subprocess
 import zipfile
+from functools import reduce
 from pathlib import Path
 from typing import List, Tuple
 from zipfile import ZipFile
+
+import py7zr
+shutil.register_unpack_format('7zip', ['.7z'], py7zr.unpack_7zarchive)
+shutil.register_archive_format('7zip', py7zr.pack_7zarchive, description='7zip archive')
 
 import util
 import config
@@ -46,6 +51,36 @@ def create_folder(path: str) -> None:
     if not Path(path).exists():
         Path(path).mkdir(parents=True)
         util.info(f"folder '{path}' created.")
+
+
+def extract_archive(path: str | os.PathLike[str], target: str | os.PathLike[str] | None = None):
+    path_from = Path(path)
+    path_to = Path(target) if target else path_from.with_suffix("")
+    shutil.unpack_archive(path_from, path_to)
+    util.info(f"file '{path_from}' extracted to '{path_to}'.")
+
+
+def extract_all_within(path: str | os.PathLike[str]):
+    archive_suffixes: List[str] = reduce(lambda acc, curr: acc + curr[1], shutil.get_unpack_formats(), []) # create a list of supported archive extensions
+    path: Path = Path(path)
+    base_folder: str = path.stem
+
+    def rec(path: Path, level: int = 0):
+        if (level > 10):
+            util.error(f"archives/folders inside {base_folder} are nested to deeply.")
+
+        for file in path.glob("*"):
+            if file.is_dir():
+                rec(file, level + 1)
+            elif file.suffix in archive_suffixes:
+                extract_archive(file)
+                rec(file.with_suffix(""), level + 1)
+
+    rec(path)
+
+if __name__ == "__main__":
+    extract_all_within("../test")
+
 
 
 def unzip_if_not_folder(path: str) -> bool:
