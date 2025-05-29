@@ -39,7 +39,7 @@ def create_file(path: str, text_content: List[str] = []) -> None:
             mode = "w"
 
     with open(path, mode, encoding="utf-8") as f:
-        util.info(f"file '{path}' created.")
+        util.info(f" CREATE: file '{path}'")
         f.write('\n'.join(text_content))
 
 
@@ -50,19 +50,19 @@ def read_file(path: str) -> List[str]:
 
 def delete_file(path: str) -> None:
     os.remove(path)
-    util.info(f"file '{path}' deleted.")
+    util.info(f" DELETE: '{path}'")
 
 
 def create_folder(path: str) -> None:
     if not Path(path).exists():
         Path(path).mkdir(parents=True)
-        util.info(f"folder '{path}' created.")
+        util.info(f" CREATE: folder '{path}'")
 
 def create_temporary_folder() -> Path:
     folder_name: str = _get_temporary_name()
     p = Path(folder_name)
     p.mkdir(parents=True)
-    util.info(f"folder '{p}' created.")
+    util.info(f" CREATE: temporary folder '{p}'")
     temporary_folders.append(p.resolve())
     return p
 
@@ -71,7 +71,7 @@ def extract_archive(path: str | PathLike[str], target: str | PathLike[str] | Non
     path_from = Path(path)
     path_to = Path(target) if target else path_from.with_suffix("")
     shutil.unpack_archive(path_from, path_to)
-    util.info(f"file '{path_from}' extracted to '{path_to}'.")
+    util.info(f" EXTRACT: '{path_from}' → '{path_to}'")
     temporary_folders.append(path_to.resolve())
 
 
@@ -93,10 +93,6 @@ def extract_all_within(path: str | PathLike[str]):
 
     rec(path)
 
-if __name__ == "__main__":
-    extract_all_within("../test")
-
-
 
 def unzip_if_not_folder(path: PathLike[str] | str) -> Path:
     path = Path(path)
@@ -112,7 +108,7 @@ def zip_folder(path: str, output_path: str) -> None:
     if output_path.endswith(".zip"):
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
     shutil.make_archive(output_path, "zip", path)
-    util.info(f"Zipped '{path}' to '{output_path}.zip'.")
+    util.info(f" ZIP: '{path}' → '{output_path}.zip'")
 
 
 def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
@@ -137,7 +133,7 @@ def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_byt
         with ZipFile(f"{output_path}{suffix}.zip", "w", compression=zipfile.ZIP_DEFLATED) as zip:
             for file in files:
                 zip.write(file, file.name)
-                util.info(f"Zipped '{file}' to '{output_path}{suffix}.zip'.")
+                util.info(f" ZIP: '{file}' → '{output_path}{suffix}.zip'")
 
     if output_path.endswith(".zip"):
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
@@ -159,7 +155,7 @@ def cleanup() -> None:
     for folder in reversed(temporary_folders):
         if folder.exists():
             shutil.rmtree(folder)
-            util.info(f"'{folder}' deleted.")
+            util.info(f" DELETE: '{folder}'")
 
 
 def _find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
@@ -205,7 +201,7 @@ def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> 
         if not file.is_dir():
             extension = file.suffix
             shutil.copy(file, path_to / f"{name_prefix}{i}{name_suffix}{extension}")
-            util.info(f"'{file.name}' copied to '{name_prefix}{i}{name_suffix}{extension}'.")
+            util.info(f" COPY: '{file.name}' → '{name_prefix}{i}{name_suffix}{extension}'")
         else:
             _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
 
@@ -291,7 +287,7 @@ def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: s
 
         shutil.copy2(file, path_to / filename)
         copied += 1
-        util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
+        util.info(f" COPY: '{file}' → '{path_to / filename}'")
 
     return copied
 

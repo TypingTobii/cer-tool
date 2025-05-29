@@ -30,7 +30,7 @@ class GradingSheet:
     def set_points(self, id: int, points: float) -> None:
         points_german = str(points).replace('.', ',')
         self.data.loc[f"Teilnehmer/in{id}", "Bewertung"] = points_german
-        util.info(f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s points to {points_german}.")
+        util.info(f" GRADING SHEET: points for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to {points_german}.")
 
     def get_points(self, id) -> float | None:
         points: str = self.data.loc[f"Teilnehmer/in{id}", "Bewertung"]
@@ -46,12 +46,12 @@ class GradingSheet:
     def set_comment(self, id: int, comment: List[str]) -> None:
         self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = _encode_comment(comment)
         util.info(
-            f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s feedback to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
+            f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
     def append_comment(self, id: int, comment: List[str]) -> None:
         self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] += _encode_comment(comment)
         util.info(
-            f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s feedback to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
+            f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
     def find_participants(self, keyword: str) -> List[List[str]]:
         selected_cols: DataFrame = self.data[["Vollständiger Name"]]
@@ -75,7 +75,7 @@ class GradingSheet:
         # map ids to actual entries within grading sheet
         translated_ids = map(lambda id: f"Teilnehmer/in{id}", ids)
         self.data = self.data.loc[self.data.index.isin(translated_ids)]
-        util.info(f"Grading sheet filtered to only include the following IDs: {ids}")
+        util.info(f" GRADING SHEET: Filtered to these IDs: {ids} ({len(self.data.index)} entries left).")
 
 
 def _decode_comment(feedback: str) -> List[str]:
