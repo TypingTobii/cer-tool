@@ -83,11 +83,12 @@ if __name__ == "__main__":
 
 
 
-def unzip_if_not_folder(path: str) -> bool:
+def unzip_if_not_folder(path: os.PathLike[str] | str) -> bool:
     if not Path(path).is_dir():
-        with ZipFile(path) as zip:
-            zip.extractall(config.FOLDER_NAME_ZIP)
-            util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
+        extract_archive(path, config.FOLDER_NAME_ZIP)
+        #with ZipFile(path) as zip:
+            #zip.extractall(config.FOLDER_NAME_ZIP)
+            #util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
         return True
     else:
         return False
