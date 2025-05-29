@@ -7,6 +7,7 @@ import zipfile
 from functools import reduce
 from pathlib import Path
 from typing import List, Tuple
+from os import PathLike
 from zipfile import ZipFile
 
 import py7zr
@@ -15,6 +16,11 @@ shutil.register_archive_format('7zip', py7zr.pack_7zarchive, description='7zip a
 
 import util
 import config
+
+
+temporary_folders: List[Path] = []
+def _get_temporary_name() -> str:
+    return config.FOLDER_NAME_TEMP.format(len(temporary_folders))
 
 
 def check_path(path: str) -> None:
@@ -52,21 +58,30 @@ def create_folder(path: str) -> None:
         Path(path).mkdir(parents=True)
         util.info(f"folder '{path}' created.")
 
+def create_temporary_folder() -> Path:
+    folder_name: str = _get_temporary_name()
+    p = Path(folder_name)
+    p.mkdir(parents=True)
+    util.info(f"folder '{p}' created.")
+    temporary_folders.append(p.resolve())
+    return p
 
-def extract_archive(path: str | os.PathLike[str], target: str | os.PathLike[str] | None = None):
+
+def extract_archive(path: str | PathLike[str], target: str | PathLike[str] | None = None):
     path_from = Path(path)
     path_to = Path(target) if target else path_from.with_suffix("")
     shutil.unpack_archive(path_from, path_to)
     util.info(f"file '{path_from}' extracted to '{path_to}'.")
+    temporary_folders.append(path_to.resolve())
 
 
-def extract_all_within(path: str | os.PathLike[str]):
+def extract_all_within(path: str | PathLike[str]):
     archive_suffixes: List[str] = reduce(lambda acc, curr: acc + curr[1], shutil.get_unpack_formats(), []) # create a list of supported archive extensions
     path: Path = Path(path)
     base_folder: str = path.stem
 
     def rec(path: Path, level: int = 0):
-        if (level > 10):
+        if level > 10:
             util.error(f"archives/folders inside {base_folder} are nested to deeply.")
 
         for file in path.glob("*"):
@@ -83,15 +98,17 @@ if __name__ == "__main__":
 
 
 
-def unzip_if_not_folder(path: os.PathLike[str] | str) -> bool:
-    if not Path(path).is_dir():
-        extract_archive(path, config.FOLDER_NAME_ZIP)
+def unzip_if_not_folder(path: PathLike[str] | str) -> Path:
+    path = Path(path)
+    if not path.is_dir():
+        target = Path(_get_temporary_name())
+        extract_archive(path, target)
         #with ZipFile(path) as zip:
             #zip.extractall(config.FOLDER_NAME_ZIP)
             #util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
-        return True
+        return target
     else:
-        return False
+        return path
 
 
 def zip_folder(path: str, output_path: str) -> None:
@@ -101,7 +118,7 @@ def zip_folder(path: str, output_path: str) -> None:
     util.info(f"Zipped '{path}' to '{output_path}.zip'.")
 
 
-def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
+def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
     def partition(files: List[Tuple[Path, int]], acc_size: int = 0, acc: List[Path] = None) -> List[List[Path]]:
         if not files:
             return [acc] if acc is not None else []
@@ -142,9 +159,10 @@ def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config
 
 
 def cleanup() -> None:
-    if os.path.exists(config.FOLDER_NAME_ZIP):
-        shutil.rmtree(config.FOLDER_NAME_ZIP)
-        util.info(f"'{config.FOLDER_NAME_ZIP}' deleted.")
+    for folder in reversed(temporary_folders):
+        if folder.exists():
+            shutil.rmtree(folder)
+            util.info(f"'{folder}' deleted.")
 
 
 def _find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
@@ -195,7 +213,7 @@ def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> 
             _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
 
 
-def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -> List[int]:
+def extract_submissions(groups: List[List[str]], path_from: str | PathLike[str], path_to: str) -> List[int]:
     create_folder(path_to)
     path_to = Path(path_to)
     path_from = Path(path_from)
@@ -257,7 +275,7 @@ def get_points_from_path(keyword: str, path: str) -> float | None:
     return points_sum if points_found else None
 
 
-def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_name: str = "") -> int:
+def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: str | PathLike[str], submission_name: str = "") -> int:
     path_from = Path(path_from)
     path_to = Path(path_to)
     feedback_files = _find_all_paths(f"*_{keyword}_*", path_from)

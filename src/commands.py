@@ -18,17 +18,14 @@ def prepare(args: Namespace) -> None:
     file_mgmt.check_path(path_submissions)
 
     # extract if needed
-    extracted = file_mgmt.unzip_if_not_folder(path_submissions)
+    extracted_submissions = file_mgmt.unzip_if_not_folder(path_submissions)
 
     # parse groups
     groups = file_mgmt.parse_groups_file(path_groups)
 
     # copy
-    if extracted:
-        file_mgmt.extract_submissions(groups, config.FOLDER_NAME_ZIP, path_out)
-        file_mgmt.cleanup()
-    else:
-        file_mgmt.extract_submissions(groups, path_submissions, path_out)
+    file_mgmt.extract_submissions(groups, extracted_submissions, path_out)
+    file_mgmt.cleanup()
 
 
 def edit_feedback(args: Namespace) -> None:
@@ -86,7 +83,7 @@ def finish(args: Namespace) -> None:
     members = list(itertools.chain(*groups))
 
     # create a temporary folder for feedback files
-    file_mgmt.create_folder(config.FOLDER_NAME_ZIP)
+    feedback_folder = file_mgmt.create_temporary_folder()
 
     processed_successfully = 0
     updated_ids = []
@@ -101,7 +98,7 @@ def finish(args: Namespace) -> None:
             continue
 
         # process feedback file/s
-        files_copied = file_mgmt.copy_feedback_files(str(id), path_feedback, config.FOLDER_NAME_ZIP, submission_name)
+        files_copied = file_mgmt.copy_feedback_files(str(id), path_feedback, feedback_folder, submission_name)
         if files_copied == 0:
             util.warning(f"No feedback files copied for student '{member}' (id: {id}).", "Student will be skipped.")
             continue
@@ -124,6 +121,6 @@ def finish(args: Namespace) -> None:
     # create a zip file with feedback files and cleanup
     util.info("", True)
     util.info("Creating zip file/s...", True)
-    created_zips = file_mgmt.zip_folder_with_limit(config.FOLDER_NAME_ZIP, out_feedback)
+    created_zips = file_mgmt.zip_folder_with_limit(feedback_folder, out_feedback)
     util.info(f"{created_zips} zip files created.", True)
     file_mgmt.cleanup()
