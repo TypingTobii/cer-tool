@@ -103,9 +103,6 @@ def unzip_if_not_folder(path: PathLike[str] | str) -> Path:
     if not path.is_dir():
         target = Path(_get_temporary_name())
         extract_archive(path, target)
-        #with ZipFile(path) as zip:
-            #zip.extractall(config.FOLDER_NAME_ZIP)
-            #util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
         return target
     else:
         return path
