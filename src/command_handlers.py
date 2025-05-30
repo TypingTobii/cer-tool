@@ -2,11 +2,13 @@ import itertools
 import argparse
 from argparse import Namespace
 from pathlib import Path
+from typing import List
 
 import config
 import file_mgmt
 import grading_sheet
 import util
+import pex_grading
 
 
 def prepare(args: Namespace) -> None:
@@ -124,3 +126,45 @@ def finish(args: Namespace) -> None:
     created_zips = file_mgmt.zip_folder_with_limit(feedback_folder, out_feedback)
     util.info(f"{created_zips} zip files created.", True)
     file_mgmt.cleanup()
+
+
+def grade_pex(args: Namespace) -> None:
+    path_grading_package: Path = file_mgmt.check_path(args.grading_package)
+    path_groups: Path = file_mgmt.check_path(args.groups)
+    path_submissions: Path = file_mgmt.check_path(args.submissions)
+    path_grading_sheet: Path = file_mgmt.check_path(args.grading_sheet)
+    if args.out_grading_sheet:
+        out_grading_sheet: Path = Path(args.out_grading_sheet)
+    else:
+        out_grading_sheet: Path = path_grading_sheet
+
+    grader = pex_grading.PexGrader(path_grading_package)
+    gs = grading_sheet.GradingSheet(path_grading_sheet)
+    groups = file_mgmt.parse_groups_file(path_groups)
+    member_ids = dict(map(lambda name: (name, gs.select_participant(name)), list(itertools.chain(*groups)) ))
+    gs.filter(list(member_ids.values()))
+
+    # extract submissions
+    path_submissions = file_mgmt.unzip_if_not_folder(path_submissions)
+    file_mgmt.extract_all_within(path_submissions)
+
+    updated_grades = 0
+    for i, group in enumerate(groups):
+        title = f"Grading group {i + 1} of {len(groups)} ({i / len(groups) * 100:.0f} % done)"
+        updated_grades += pex_grading.grade_pex_group(group,
+                                    list(map(lambda name: member_ids[name], group)),
+                                    path_submissions, grader, gs,
+                                    console_header=f"{title}\n{len(title) * '─'}" )
+
+        gs.save(out_grading_sheet)
+        util.info("", always_display=True)
+        answer = util.choose_option({"y", "n"}, "y", "Continue with the next group?")
+        if answer != "y":
+            break
+
+    util.clear_console()
+    grader.cleanup()
+    file_mgmt.cleanup()
+
+    util.info("", always_display=True)
+    util.info(f"Updated {updated_grades} of {len(member_ids)} grades.", always_display=True)

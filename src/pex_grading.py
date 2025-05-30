@@ -2,19 +2,17 @@ import json
 import shutil
 from pathlib import Path
 import math
-from typing import Tuple
+from typing import Tuple, List
 
 import util
 import file_mgmt
 import config
 import grading_sheet
 
-
 class PexFeedback:
     test_output: str = ""
     additional_feedback: str = ""
     points: float = 0.0
-    valid: bool = False
 
     def __init__(self, points: str | float, test_output: str, additional_feedback: str) -> None:
         self.test_output = test_output.strip()
@@ -24,13 +22,30 @@ class PexFeedback:
         except ValueError:
             self.points = float("NaN")
 
-        self.valid = not math.isnan(self.points) and self.points > 0 and len(test_output) > 0
-
 
     def __str__(self) -> str:
-        str = "valid" if self.valid else "invalid"
-        str += f" feedback: {{ Total points: {self.points}, Test output: '{self.test_output}', Additional feedback: {f"'{self.additional_feedback}'" or "(none)"} }}"
-        return str
+        return ( f"Test output:\n{self.test_output}\n\n"
+                 f"Additional feedback:\n{self.additional_feedback or "(none)"}\n\n"
+                 f"Points: {self.points}\n"
+                 f"Feedback is {"OK" if self.valid() else "INVALID!"}" )
+
+    def valid(self) -> bool:
+        return not math.isnan(self.points) and self.points >= 0 and len(self.test_output) > 0
+
+    def set_points(self, points: float) -> None:
+        self.points = points
+
+    def set_test_output(self, test_output: str) -> None:
+        self.test_output = test_output
+
+    def set_additional_feedback(self, additional_feedback: str) -> None:
+        self.additional_feedback = additional_feedback
+
+    def replace_with(self, other: 'PexFeedback') -> None:
+        self.points = other.points
+        self.test_output = other.test_output
+        self.additional_feedback = other.additional_feedback
+
 
     def as_html(self) -> str:
         html = ""
@@ -164,6 +179,105 @@ class PexGrader:
 def open_submission(path: Path) -> None:
     _notebook_vscode_fix(path)
     file_mgmt.open_file(path)
+
+
+def grade_pex_group(group: List[str], group_ids: List[int], path_submissions: Path,
+                    grader: PexGrader, gs: grading_sheet.GradingSheet, console_header: str | None = None) -> int:
+    sample_id = group_ids[0]
+    current_feedback = PexFeedback("", "", "")
+    submission = file_mgmt.find_pex_submission(sample_id, path_submissions)
+    graded = True
+    finished = False
+    updated_grades = 0
+
+    def grade():
+        util.clear_console(console_header)
+        util.info(f"Running automatic tests for group {group} ...", always_display=True)
+        new_feedback = grader.grade(submission)
+        current_feedback.set_points(new_feedback.points)
+        current_feedback.set_test_output(new_feedback.test_output)
+        util.wait_for_user()
+
+    def edit_feedback():
+        feedback_text = current_feedback.as_editable_text(f"# Editing feedback for group {group}:")
+        file_mgmt.create_file(config.FILE_NAME_COMMENT, feedback_text)
+        file_mgmt.open_file(config.FILE_NAME_COMMENT)
+        util.wait_for_user("Please edit the feedback, save the file and press ENTER to continue ...")
+
+        new_feedback = PexFeedback.from_editable_text(file_mgmt.read_file(config.FILE_NAME_COMMENT))
+        file_mgmt.delete_file(config.FILE_NAME_COMMENT)
+        current_feedback.replace_with(new_feedback)
+
+
+    for id in group_ids:
+        if gs.get_points(id) is None or gs.get_comment(id) is None:
+            graded = False
+
+    if graded:
+        util.clear_console(console_header)
+        util.info(f"Group {group} already has a feedback in the grading scheme.", always_display=True)
+        match util.choose_option({"s", "l", "d"}, "s", "The following options are available:\n"
+                                                       "  's': skip this group\n"
+                                                       "  'l': load feedback from grading scheme\n"
+                                                       "  'd': discard feedback from grading scheme and regrade\n"
+                                                       "What would you like to do?"):
+            case "s":
+                return 0
+
+            case "l":
+                loaded_feedback = PexFeedback.from_html(gs.get_comment(sample_id, decode=False), gs.get_points(sample_id))
+                current_feedback.replace_with(loaded_feedback)
+
+            case "d":
+                graded = False
+
+            case _:
+                util.error("Internal error: 'choose_option' is misbehaving.")
+
+    if not graded:
+        grade()
+
+
+    while not finished:
+        util.clear_console(console_header)
+        util.info(f"Current feedback for group {group}:\n\n{current_feedback}\n", always_display=True, append_full_stop=False)
+        match util.choose_option({"osol", "osub", "r", "e", "f"}, "f", "The following options are available:\n"
+                                                                 "  'osol': open solution\n"
+                                                                 "  'osub': open submission\n"
+                                                                 "  'r': regrade\n"
+                                                                 "  'e': edit feedback\n"
+                                                                 "  'f': finish grading and add to grading sheet\n"
+                                                                 "What would you like to do?"):
+            case "osub":
+                open_submission(submission)
+
+            case "osol":
+                grader.open_solution()
+
+            case "r":
+                grade()
+
+            case "e":
+                edit_feedback()
+
+            case "f":
+                if not current_feedback.valid():
+                    util.warning("Current feedback is invalid.", "Please try regrading or editing the feedback.")
+                    util.wait_for_user()
+                    continue
+
+                for id in group_ids:
+                    gs.set_points(id, current_feedback.points)
+                    gs.set_comment(id, current_feedback.as_html(), encode=False)
+                    gs.append_comment(id, config.MOODLE_FEEDBACK_STANDARD_TEXT)
+                    updated_grades += 1
+                finished = True
+
+            case _:
+                util.error("Internal error: 'choose_option' is misbehaving.")
+
+    return updated_grades
+
 
 def _json_to_txt(d: dict) -> Tuple[str, str]:
     #group_name = d['group_num']

@@ -1,7 +1,9 @@
 import argparse
 
 import config
-import commands
+import command_handlers
+import file_mgmt
+import util
 
 
 if __name__ == "__main__":
@@ -10,13 +12,13 @@ if __name__ == "__main__":
                                             title="subcommands", description="The following commands are available:",
                                             help="command to be executed")
     parser_main.add_argument("-v", "--verbose", action="store_true", required=False,
-                             help="output a message if a change to the file system is caused")
+                             help="output a message for each change caused by cer-tool")
 
     # prepare
     parser_prepare = subparsers.add_parser("prepare", aliases=["pp"],
                                            help="gather and rename submission files, s.t. they can be easily graded with Notability",
                                            description="gather and rename submission files, s.t. they can be easily graded with Notability")
-    parser_prepare.set_defaults(func=commands.prepare)
+    parser_prepare.set_defaults(func=command_handlers.prepare)
 
     parser_prepare_group_input = parser_prepare.add_argument_group("input files")
     parser_prepare_group_input.add_argument("-g", "--groups", required=True,
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     parser_feedback.add_argument("-o", "--out", required=False, help="custom output file (default: overwrite input file)")
     parser_feedback.add_argument("student_name", nargs='+',
                                  help="partial or complete name of the student whose feedback should be edited")
-    parser_feedback.set_defaults(func=commands.edit_feedback)
+    parser_feedback.set_defaults(func=command_handlers.edit_feedback)
 
     # finish
     parser_finish = subparsers.add_parser("finish", aliases=["fs"],
@@ -58,9 +60,33 @@ if __name__ == "__main__":
                                help="custom path for output grading sheet (default: ./_out_GRADING_SHEET.csv)")
     parser_finish.add_argument("-sn", "--submission-name", required=False,
                                help="name of the submission to be included in the feedback file names (default: '')")
-    parser_finish.set_defaults(func=commands.finish)
+    parser_finish.set_defaults(func=command_handlers.finish)
+
+    # grade_pex
+    parser_pex = subparsers.add_parser("grade_pex", aliases=["pex"],
+                                       help="semi-automatically grade all assigned programming exercise submissions",
+                                       description="semi-automatically grade all assigned programming exercise submissions")
+
+    parser_pex_group_input = parser_pex.add_argument_group("input files")
+    parser_pex_group_input.add_argument("-p", "--grading-package", required=True,
+                                        help="path to an archive or a folder containing the scripts for automatic grading")
+    parser_pex_group_input.add_argument("-g", "--groups", required=True,
+                                        help="path to text file containing groups to correct")
+    parser_pex_group_input.add_argument("-s", "--submissions", required=True,
+                                        help="path to an archive or a folder containing the submissions")
+    parser_pex_group_input.add_argument("-t", "--grading-sheet", required=True,
+                                        help="path to the grading sheet to edit")
+
+    parser_pex.add_argument("-ot", "--out-grading-sheet", required=False,
+                            help="custom path for output grading sheet (default: overwrite input file)")
+    parser_pex.set_defaults(func=command_handlers.grade_pex)
+
 
     args = parser_main.parse_args()
 
     config.VERBOSE = args.verbose
-    args.func(args)
+    try:
+        args.func(args)
+    except KeyboardInterrupt:
+        file_mgmt.cleanup()
+        util.warning("Aborted by user.", "Some temporary files or folders may have been left.")
