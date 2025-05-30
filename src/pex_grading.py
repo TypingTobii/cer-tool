@@ -154,7 +154,7 @@ class PexGrader:
             reached_points = float(reached_points)
         else:
             util.info(f"Automatic grading FAILED:\n\n{stdout}", always_display=True, append_full_stop=False)
-            grade_text = f"Failed to run tests:\n{stdout}"
+            grade_text = f"Failed to run tests:\n{stdout}\n(end of output)"
             reached_points = 0
 
         # cleanup created folder structure

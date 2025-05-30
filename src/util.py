@@ -119,5 +119,5 @@ def run_command(command: str, show_output=True):
 
 
 def run_potentially_failing_command(command: str) -> Tuple[bool, str]:
-    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     return result.returncode == 0, result.stdout
