@@ -6,7 +6,7 @@ import subprocess
 import zipfile
 from functools import reduce
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 from os import PathLike
 from zipfile import ZipFile
 
@@ -23,9 +23,11 @@ def _get_temporary_name() -> str:
     return config.FOLDER_NAME_TEMP.format(len(temporary_folders))
 
 
-def check_path(path: str) -> None:
-    if not os.path.exists(path):
+def check_path(path: str) -> Path:
+    path = Path(path)
+    if not path.exists():
         util.error(f"path '{path}' does not exist")
+    return path
 
 
 def create_file(path: str, text_content: List[str] = []) -> None:
@@ -53,7 +55,7 @@ def delete_file(path: str) -> None:
     util.info(f" DELETE: '{path}'")
 
 
-def create_folder(path: str) -> None:
+def create_folder(path: str | PathLike[str]) -> None:
     if not Path(path).exists():
         Path(path).mkdir(parents=True)
         util.info(f" CREATE: folder '{path}'")
@@ -151,21 +153,31 @@ def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_byt
     return total_zips
 
 
+def delete_folder(folder: Path) -> None:
+    if folder.exists():
+        shutil.rmtree(folder)
+        util.info(f" DELETE: '{folder}'")
+    if folder.resolve() in temporary_folders:
+        temporary_folders.remove(folder.resolve())
+
+
 def cleanup() -> None:
     for folder in reversed(temporary_folders):
-        if folder.exists():
-            shutil.rmtree(folder)
-            util.info(f" DELETE: '{folder}'")
+        delete_folder(folder)
 
 
-def _find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
+def find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
     if replace_non_ascii:
         keyword = ''.join([c if ord(c) < 128 else '*' for c in keyword])
     return list(path.rglob(f"{keyword}"))
 
 
-def _find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True) -> Path:
-    results = _find_all_paths(keyword, path, replace_non_ascii)
+def find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True,
+                     filter: Callable[[Path], bool] | None = None) -> Path:
+    results = find_all_paths(keyword, path, replace_non_ascii)
+    if filter:
+        results = list(__builtins__.filter(filter, results))
+
     i = 0
     if not results:
         util.error(f"No results found for '{keyword}'")
@@ -214,7 +226,7 @@ def extract_submissions(groups: List[List[str]], path_from: str | PathLike[str],
 
     for groupIdx, group in enumerate(groups):
         for memberIdx, member in enumerate(group):
-            submission_folder = _find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
+            submission_folder = find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
             moodle_id = submission_folder.name.split("_")[1]
 
             prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
@@ -250,7 +262,7 @@ def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
 
 def get_points_from_path(keyword: str, path: str) -> float | None:
     path = Path(path)
-    feedback_files = _find_all_paths(f"*_{keyword}_*", path)
+    feedback_files = find_all_paths(f"*_{keyword}_*", path)
 
     points_sum = 0
     points_found = False
@@ -271,7 +283,7 @@ def get_points_from_path(keyword: str, path: str) -> float | None:
 def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: str | PathLike[str], submission_name: str = "") -> int:
     path_from = Path(path_from)
     path_to = Path(path_to)
-    feedback_files = _find_all_paths(f"*_{keyword}_*", path_from)
+    feedback_files = find_all_paths(f"*_{keyword}_*", path_from)
     copied = 0
 
     for file in feedback_files:
@@ -292,7 +304,7 @@ def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: s
     return copied
 
 
-def open_file(path: str) -> None:
+def open_file(path: str | PathLike[str]) -> None:
     path = Path(path)
     # taken from: https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
     if platform.system() == 'Darwin':  # macOS
@@ -301,3 +313,15 @@ def open_file(path: str) -> None:
         os.startfile(path)
     else:  # linux variants
         subprocess.call(('xdg-open', path))
+
+
+def replace_in_file(path: str | PathLike[str], old: str, replacement: str) -> None:
+    path = check_path(path)
+    with open(path, 'r') as f:
+        content = f.read()
+
+    content = content.replace(old, replacement)
+    print(content)
+
+    with open(path, 'w') as f:
+        f.write(content)

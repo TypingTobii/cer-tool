@@ -1,3 +1,5 @@
+import os
+import subprocess
 import sys
 from typing import List, Set, Any
 
@@ -27,6 +29,17 @@ def info(message: str, always_display: bool = False) -> None:
     if message:
         message = message + "." if message[-1] != "." else message
     print(message)
+
+
+def clear_console() -> None:
+    # disable this functionality if tool is in verbose mode (s.t. no messages get lost)
+    if config.VERBOSE:
+        return
+
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 
 def choose_option(options: Set[str], default: str | None = None, message="Select an option:") -> str:
@@ -89,3 +102,14 @@ def index_to_ascii(index: int, zero_based: bool = True) -> str:
         return index_to_ascii(index // 26 - 1, zero_based) + index_to_ascii(index % 26, zero_based)
     else:
         return chr(ord('a') + index)
+
+
+def run_command(command: str, show_output=True):
+    if config.VERBOSE or show_output:
+        result = subprocess.run(command)
+        if result.returncode != 0:
+            error(f"Command '{command}' exited unsuccessfully:\n{result.stderr}")
+    else:
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            error(f"Command '{command}' exited unsuccessfully. See the above output for details.")

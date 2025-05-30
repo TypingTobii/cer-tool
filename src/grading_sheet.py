@@ -41,15 +41,15 @@ class GradingSheet:
 
     def get_comment(self, id: int) -> List[str]:
         raw_feedback = str(self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"])
-        return _decode_comment(raw_feedback)
+        return decode_comment(raw_feedback)
 
     def set_comment(self, id: int, comment: List[str]) -> None:
-        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = _encode_comment(comment)
+        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = encode_comment(comment)
         util.info(
             f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
     def append_comment(self, id: int, comment: List[str]) -> None:
-        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] += _encode_comment(comment)
+        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] += encode_comment(comment)
         util.info(
             f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
@@ -78,12 +78,12 @@ class GradingSheet:
         util.info(f" GRADING SHEET: Filtered to these IDs: {ids} ({len(self.data.index)} entries left).")
 
 
-def _decode_comment(feedback: str) -> List[str]:
+def decode_comment(feedback: str) -> List[str]:
     feedback = re.split(r'</?p>', feedback)
     return list(filter(lambda s: len(s) > 0, feedback))
 
 
-def _encode_comment(feedback: List[str]) -> str:
+def encode_comment(feedback: List[str]) -> str:
     feedback = filter(lambda s: len(s) > 0, feedback)
     lines_as_paragraphs = map(lambda s: f"<p>{s}</p>", feedback)
     return ''.join(lines_as_paragraphs)

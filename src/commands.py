@@ -54,7 +54,7 @@ def edit_feedback(args: Namespace) -> None:
     # retrieve changes
     feedback_new = file_mgmt.read_file(config.FILE_NAME_COMMENT)[1:]
     file_mgmt.delete_file(config.FILE_NAME_COMMENT)
-    if grading_sheet._encode_comment(feedback_new) == grading_sheet._encode_comment(feedback_current):
+    if grading_sheet.encode_comment(feedback_new) == grading_sheet.encode_comment(feedback_current):
         util.warning("No changes to the comment.")
         return
 
