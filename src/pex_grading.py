@@ -132,6 +132,7 @@ class PexGrader:
         grading_target = grading_folder / Path(f"{self.pex_name}-grading")
 
         file_mgmt.create_folder(grading_source)
+        file_mgmt.create_folder(grading_target)
         shutil.copy2(submission, grading_source / f"sc-{self.pex_name}.ipynb")
 
         # initiate grading by starting the docker container
