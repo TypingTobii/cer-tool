@@ -3,6 +3,7 @@ import re
 from typing import List
 
 import pandas as pd
+from envs.test.Lib.os import PathLike
 from pandas.core.frame import DataFrame
 
 import util
@@ -11,12 +12,12 @@ import util
 class GradingSheet:
     data: DataFrame = []
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str | PathLike[str]) -> None:
         self.path = path
         self.data = pd.read_csv(path, index_col=0)
         self.data = self.data.fillna('')
 
-    def save(self, path: str | None = None):
+    def save(self, path: str | PathLike[str] | None = None):
         output_path = path if path else self.path
         self.data.to_csv(output_path, quoting=csv.QUOTE_ALL)
 
@@ -30,7 +31,7 @@ class GradingSheet:
     def set_points(self, id: int, points: float) -> None:
         points_german = str(points).replace('.', ',')
         self.data.loc[f"Teilnehmer/in{id}", "Bewertung"] = points_german
-        util.info(f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s points to {points_german}.")
+        util.info(f" GRADING SHEET: points for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to {points_german}.")
 
     def get_points(self, id) -> float | None:
         points: str = self.data.loc[f"Teilnehmer/in{id}", "Bewertung"]
@@ -39,19 +40,25 @@ class GradingSheet:
         else:
             return float(points.replace(',', '.'))
 
-    def get_comment(self, id: int) -> List[str]:
+    def get_comment(self, id: int, decode=True) -> List[str] | str:
         raw_feedback = str(self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"])
-        return _decode_comment(raw_feedback)
+        if decode:
+            return decode_comment(raw_feedback)
+        else:
+            return raw_feedback
 
-    def set_comment(self, id: int, comment: List[str]) -> None:
-        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = _encode_comment(comment)
+    def set_comment(self, id: int, comment: List[str] | str, encode=True) -> None:
+        if encode:
+            comment = encode_comment(comment)
+
+        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = comment
         util.info(
-            f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s feedback to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
+            f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
     def append_comment(self, id: int, comment: List[str]) -> None:
-        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] += _encode_comment(comment)
+        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] += encode_comment(comment)
         util.info(
-            f"set {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]}'s feedback to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
+            f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 
     def find_participants(self, keyword: str) -> List[List[str]]:
         selected_cols: DataFrame = self.data[["Vollständiger Name"]]
@@ -75,15 +82,15 @@ class GradingSheet:
         # map ids to actual entries within grading sheet
         translated_ids = map(lambda id: f"Teilnehmer/in{id}", ids)
         self.data = self.data.loc[self.data.index.isin(translated_ids)]
-        util.info(f"Grading sheet filtered to only include the following IDs: {ids}")
+        util.info(f" GRADING SHEET: Filtered to these IDs: {ids} ({len(self.data.index)} entries left).")
 
 
-def _decode_comment(feedback: str) -> List[str]:
+def decode_comment(feedback: str) -> List[str]:
     feedback = re.split(r'</?p>', feedback)
     return list(filter(lambda s: len(s) > 0, feedback))
 
 
-def _encode_comment(feedback: List[str]) -> str:
+def encode_comment(feedback: List[str]) -> str:
     feedback = filter(lambda s: len(s) > 0, feedback)
     lines_as_paragraphs = map(lambda s: f"<p>{s}</p>", feedback)
     return ''.join(lines_as_paragraphs)

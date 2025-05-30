@@ -1,5 +1,7 @@
+import os
+import subprocess
 import sys
-from typing import List, Set, Any
+from typing import List, Set, Any, Tuple
 
 import config
 
@@ -21,12 +23,26 @@ def warning(message: str, consequence: str = None) -> None:
         print(f" ↪ {consequence}", file=sys.stderr)
 
 
-def info(message: str, always_display: bool = False) -> None:
+def info(message: str, always_display: bool = False, append_full_stop=True) -> None:
     if not (always_display or config.VERBOSE):
         return
-    if message:
+    if message and append_full_stop:
         message = message + "." if message[-1] != "." else message
     print(message)
+
+
+def clear_console(console_header: str | None = None) -> None:
+    # disable this functionality if cer-tool is in verbose mode (s.t. no messages get lost)
+    if config.VERBOSE:
+        return
+
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
+
+    if console_header:
+        info(console_header, always_display=True, append_full_stop=False)
 
 
 def choose_option(options: Set[str], default: str | None = None, message="Select an option:") -> str:
@@ -89,3 +105,19 @@ def index_to_ascii(index: int, zero_based: bool = True) -> str:
         return index_to_ascii(index // 26 - 1, zero_based) + index_to_ascii(index % 26, zero_based)
     else:
         return chr(ord('a') + index)
+
+
+def run_command(command: str, show_output=True):
+    if config.VERBOSE or show_output:
+        result = subprocess.run(command, shell=True)
+        if result.returncode != 0:
+            error(f"Command '{command}' exited unsuccessfully. See the above output for details.")
+    else:
+        result = subprocess.run(command, capture_output=True, text=True, shell=True)
+        if result.returncode != 0:
+            error(f"Command '{command}' exited unsuccessfully:\n{result.stderr}")
+
+
+def run_potentially_failing_command(command: str) -> Tuple[bool, str]:
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    return result.returncode == 0, result.stdout

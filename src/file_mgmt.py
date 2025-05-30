@@ -4,17 +4,30 @@ import re
 import shutil
 import subprocess
 import zipfile
+from functools import reduce
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Callable
+from os import PathLike
 from zipfile import ZipFile
+
+import py7zr
+shutil.register_unpack_format('7zip', ['.7z'], py7zr.unpack_7zarchive)
+shutil.register_archive_format('7zip', py7zr.pack_7zarchive, description='7zip archive')
 
 import util
 import config
 
 
-def check_path(path: str) -> None:
-    if not os.path.exists(path):
+temporary_folders: List[Path] = []
+def _get_temporary_name() -> str:
+    return config.FOLDER_NAME_TEMP.format(len(temporary_folders))
+
+
+def check_path(path: str) -> Path:
+    path = Path(path)
+    if not path.exists():
         util.error(f"path '{path}' does not exist")
+    return path
 
 
 def create_file(path: str, text_content: List[str] = []) -> None:
@@ -28,7 +41,7 @@ def create_file(path: str, text_content: List[str] = []) -> None:
             mode = "w"
 
     with open(path, mode, encoding="utf-8") as f:
-        util.info(f"file '{path}' created.")
+        util.info(f" CREATE: file '{path}'")
         f.write('\n'.join(text_content))
 
 
@@ -39,33 +52,68 @@ def read_file(path: str) -> List[str]:
 
 def delete_file(path: str) -> None:
     os.remove(path)
-    util.info(f"file '{path}' deleted.")
+    util.info(f" DELETE: '{path}'")
 
 
-def create_folder(path: str) -> None:
+def create_folder(path: str | PathLike[str]) -> None:
     if not Path(path).exists():
         Path(path).mkdir(parents=True)
-        util.info(f"folder '{path}' created.")
+        util.info(f" CREATE: folder '{path}'")
+
+def create_temporary_folder() -> Path:
+    folder_name: str = _get_temporary_name()
+    p = Path(folder_name)
+    p.mkdir(parents=True)
+    util.info(f" CREATE: temporary folder '{p}'")
+    temporary_folders.append(p.resolve())
+    return p
 
 
-def unzip_if_not_folder(path: str) -> bool:
-    if not Path(path).is_dir():
-        with ZipFile(path) as zip:
-            zip.extractall(config.FOLDER_NAME_ZIP)
-            util.info(f"file '{path}' extracted to '{config.FOLDER_NAME_ZIP}'.")
-        return True
+def extract_archive(path: str | PathLike[str], target: str | PathLike[str] | None = None):
+    path_from = Path(path)
+    path_to = Path(target) if target else path_from.with_suffix("")
+    shutil.unpack_archive(path_from, path_to)
+    util.info(f" EXTRACT: '{path_from}' → '{path_to}'")
+    temporary_folders.append(path_to.resolve())
+
+
+def extract_all_within(path: str | PathLike[str]):
+    archive_suffixes: List[str] = reduce(lambda acc, curr: acc + curr[1], shutil.get_unpack_formats(), []) # create a list of supported archive extensions
+    path: Path = Path(path)
+    base_folder: str = path.stem
+
+    def rec(path: Path, level: int = 0):
+        if level > 10:
+            util.error(f"archives/folders inside {base_folder} are nested to deeply.")
+
+        for file in path.glob("*"):
+            if file.is_dir():
+                rec(file, level + 1)
+            elif file.suffix in archive_suffixes:
+                extract_archive(file)
+                rec(file.with_suffix(""), level + 1)
+
+    rec(path)
+
+
+def unzip_if_not_folder(path: PathLike[str] | str) -> Path:
+    path = Path(path)
+    if not path.is_dir():
+        target = Path(_get_temporary_name())
+        extract_archive(path, target)
+        return target
     else:
-        return False
+        return path
 
 
 def zip_folder(path: str, output_path: str) -> None:
     if output_path.endswith(".zip"):
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
     shutil.make_archive(output_path, "zip", path)
-    util.info(f"Zipped '{path}' to '{output_path}.zip'.")
+    util.info(f" ZIP: '{path}' → '{output_path}.zip'")
 
 
-def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
+def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
     def partition(files: List[Tuple[Path, int]], acc_size: int = 0, acc: List[Path] = None) -> List[List[Path]]:
         if not files:
             return [acc] if acc is not None else []
@@ -87,7 +135,7 @@ def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config
         with ZipFile(f"{output_path}{suffix}.zip", "w", compression=zipfile.ZIP_DEFLATED) as zip:
             for file in files:
                 zip.write(file, file.name)
-                util.info(f"Zipped '{file}' to '{output_path}{suffix}.zip'.")
+                util.info(f" ZIP: '{file}' → '{output_path}{suffix}.zip'")
 
     if output_path.endswith(".zip"):
         output_path = re.sub(r"(.*)\.zip", r"\1", output_path)
@@ -105,20 +153,31 @@ def zip_folder_with_limit(path: str, output_path: str, limit_bytes: int = config
     return total_zips
 
 
+def delete_folder(folder: Path) -> None:
+    if folder.exists():
+        shutil.rmtree(folder)
+        util.info(f" DELETE: '{folder}'")
+    if folder.resolve() in temporary_folders:
+        temporary_folders.remove(folder.resolve())
+
+
 def cleanup() -> None:
-    if os.path.exists(config.FOLDER_NAME_ZIP):
-        shutil.rmtree(config.FOLDER_NAME_ZIP)
-        util.info(f"'{config.FOLDER_NAME_ZIP}' deleted.")
+    for folder in reversed(temporary_folders):
+        delete_folder(folder)
 
 
-def _find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
+def find_all_paths(keyword: str, path: str | PathLike[str], replace_non_ascii: bool = True) -> List[Path]:
     if replace_non_ascii:
         keyword = ''.join([c if ord(c) < 128 else '*' for c in keyword])
-    return list(path.rglob(f"{keyword}"))
+    return list(Path(path).rglob(f"{keyword}"))
 
 
-def _find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True) -> Path:
-    results = _find_all_paths(keyword, path, replace_non_ascii)
+def find_single_path(keyword: str, path: str | PathLike[str], replace_non_ascii: bool = True,
+                     filter_fun: Callable[[Path], bool] | None = None) -> Path:
+    results = find_all_paths(keyword, path, replace_non_ascii)
+    if filter_fun:
+        results = list(filter(filter_fun, results))
+
     i = 0
     if not results:
         util.error(f"No results found for '{keyword}'")
@@ -128,7 +187,7 @@ def _find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True) 
     return results[i]
 
 
-def parse_groups_file(path: str) -> List[List[str]] | None:
+def parse_groups_file(path: str | PathLike[str]) -> List[List[str]] | None:
     try:
         with open(path, "r", encoding="utf-8") as groups_file:
             # get all lines of the file (1 line = 1 group)
@@ -154,12 +213,12 @@ def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> 
         if not file.is_dir():
             extension = file.suffix
             shutil.copy(file, path_to / f"{name_prefix}{i}{name_suffix}{extension}")
-            util.info(f"'{file.name}' copied to '{name_prefix}{i}{name_suffix}{extension}'.")
+            util.info(f" COPY: '{file.name}' → '{name_prefix}{i}{name_suffix}{extension}'")
         else:
             _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
 
 
-def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -> List[int]:
+def extract_theoretical_submissions(groups: List[List[str]], path_from: str | PathLike[str], path_to: str) -> List[int]:
     create_folder(path_to)
     path_to = Path(path_to)
     path_from = Path(path_from)
@@ -167,7 +226,7 @@ def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -
 
     for groupIdx, group in enumerate(groups):
         for memberIdx, member in enumerate(group):
-            submission_folder = _find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
+            submission_folder = find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
             moodle_id = submission_folder.name.split("_")[1]
 
             prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
@@ -177,6 +236,12 @@ def extract_submissions(groups: List[List[str]], path_from: str, path_to: str) -
             extracted.append(moodle_id)
 
     return extracted
+
+
+def find_pex_submission(id: int, submissions: str | PathLike[str]) -> Path:
+    submission_folder = find_single_path(f"*{id}*{config.MOODLE_SUBMISSION_KEYWORD}", submissions)
+    return find_single_path("*.ipynb", submission_folder,
+                            filter_fun=lambda p: not p.name.endswith("-checkpoint.ipynb") and not p.name.startswith("._"))
 
 
 def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
@@ -203,7 +268,7 @@ def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):
 
 def get_points_from_path(keyword: str, path: str) -> float | None:
     path = Path(path)
-    feedback_files = _find_all_paths(f"*_{keyword}_*", path)
+    feedback_files = find_all_paths(f"*_{keyword}_*", path)
 
     points_sum = 0
     points_found = False
@@ -221,10 +286,10 @@ def get_points_from_path(keyword: str, path: str) -> float | None:
     return points_sum if points_found else None
 
 
-def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_name: str = "") -> int:
+def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: str | PathLike[str], submission_name: str = "") -> int:
     path_from = Path(path_from)
     path_to = Path(path_to)
-    feedback_files = _find_all_paths(f"*_{keyword}_*", path_from)
+    feedback_files = find_all_paths(f"*_{keyword}_*", path_from)
     copied = 0
 
     for file in feedback_files:
@@ -240,12 +305,12 @@ def copy_feedback_files(keyword: str, path_from: str, path_to: str, submission_n
 
         shutil.copy2(file, path_to / filename)
         copied += 1
-        util.info(f"Feedback file '{file}' copied to '{path_to / filename}'.")
+        util.info(f" COPY: '{file}' → '{path_to / filename}'")
 
     return copied
 
 
-def open_file(path: str) -> None:
+def open_file(path: str | PathLike[str]) -> None:
     path = Path(path)
     # taken from: https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
     if platform.system() == 'Darwin':  # macOS
@@ -254,3 +319,15 @@ def open_file(path: str) -> None:
         os.startfile(path)
     else:  # linux variants
         subprocess.call(('xdg-open', path))
+
+
+def replace_in_file(path: str | PathLike[str], old: str, replacement: str) -> None:
+    path = check_path(path)
+    with open(path, 'r') as f:
+        content = f.read()
+
+    content = content.replace(old, replacement)
+    print(content)
+
+    with open(path, 'w') as f:
+        f.write(content)
