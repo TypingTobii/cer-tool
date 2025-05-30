@@ -1,9 +1,9 @@
 import csv
 import re
 from typing import List
+from os import PathLike
 
 import pandas as pd
-from envs.test.Lib.os import PathLike
 from pandas.core.frame import DataFrame
 
 import util
