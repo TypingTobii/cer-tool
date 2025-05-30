@@ -24,7 +24,7 @@ def prepare(args: Namespace) -> None:
     groups = file_mgmt.parse_groups_file(path_groups)
 
     # copy
-    file_mgmt.extract_submissions(groups, extracted_submissions, path_out)
+    file_mgmt.extract_theoretical_submissions(groups, extracted_submissions, path_out)
     file_mgmt.cleanup()
 
 

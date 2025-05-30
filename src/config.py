@@ -12,4 +12,4 @@ PEX_DOCKER_GROUP_NAME = "cer-tool"
 PEX_HTML_MAGIC_COMMENT = "<!--%%%-->"
 PEX_TEXT_DIVIDER = '%'
 
-VERBOSE = True
+VERBOSE = True # automatically set by main.py

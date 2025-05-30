@@ -3,6 +3,7 @@ import re
 from typing import List
 
 import pandas as pd
+from envs.test.Lib.os import PathLike
 from pandas.core.frame import DataFrame
 
 import util
@@ -11,12 +12,12 @@ import util
 class GradingSheet:
     data: DataFrame = []
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str | PathLike[str]) -> None:
         self.path = path
         self.data = pd.read_csv(path, index_col=0)
         self.data = self.data.fillna('')
 
-    def save(self, path: str | None = None):
+    def save(self, path: str | PathLike[str] | None = None):
         output_path = path if path else self.path
         self.data.to_csv(output_path, quoting=csv.QUOTE_ALL)
 
@@ -39,12 +40,18 @@ class GradingSheet:
         else:
             return float(points.replace(',', '.'))
 
-    def get_comment(self, id: int) -> List[str]:
+    def get_comment(self, id: int, decode=True) -> List[str] | str:
         raw_feedback = str(self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"])
-        return decode_comment(raw_feedback)
+        if decode:
+            return decode_comment(raw_feedback)
+        else:
+            return raw_feedback
 
-    def set_comment(self, id: int, comment: List[str]) -> None:
-        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = encode_comment(comment)
+    def set_comment(self, id: int, comment: List[str] | str, encode=True) -> None:
+        if encode:
+            comment = encode_comment(comment)
+
+        self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"] = comment
         util.info(
             f" GRADING SHEET: feedback for {self.data.loc[f"Teilnehmer/in{id}", "Vollständiger Name"]} set to '{self.data.loc[f"Teilnehmer/in{id}", "Feedback als Kommentar"]}'.")
 

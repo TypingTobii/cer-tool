@@ -166,17 +166,17 @@ def cleanup() -> None:
         delete_folder(folder)
 
 
-def find_all_paths(keyword: str, path: Path, replace_non_ascii: bool = True) -> List[Path]:
+def find_all_paths(keyword: str, path: str | PathLike[str], replace_non_ascii: bool = True) -> List[Path]:
     if replace_non_ascii:
         keyword = ''.join([c if ord(c) < 128 else '*' for c in keyword])
-    return list(path.rglob(f"{keyword}"))
+    return list(Path(path).rglob(f"{keyword}"))
 
 
-def find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True,
-                     filter: Callable[[Path], bool] | None = None) -> Path:
+def find_single_path(keyword: str, path: str | PathLike[str], replace_non_ascii: bool = True,
+                     filter_fun: Callable[[Path], bool] | None = None) -> Path:
     results = find_all_paths(keyword, path, replace_non_ascii)
-    if filter:
-        results = list(__builtins__.filter(filter, results))
+    if filter_fun:
+        results = list(filter(filter_fun, results))
 
     i = 0
     if not results:
@@ -187,7 +187,7 @@ def find_single_path(keyword: str, path: Path, replace_non_ascii: bool = True,
     return results[i]
 
 
-def parse_groups_file(path: str) -> List[List[str]] | None:
+def parse_groups_file(path: str | PathLike[str]) -> List[List[str]] | None:
     try:
         with open(path, "r", encoding="utf-8") as groups_file:
             # get all lines of the file (1 line = 1 group)
@@ -218,7 +218,7 @@ def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> 
             _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
 
 
-def extract_submissions(groups: List[List[str]], path_from: str | PathLike[str], path_to: str) -> List[int]:
+def extract_theoretical_submissions(groups: List[List[str]], path_from: str | PathLike[str], path_to: str) -> List[int]:
     create_folder(path_to)
     path_to = Path(path_to)
     path_from = Path(path_from)
@@ -236,6 +236,12 @@ def extract_submissions(groups: List[List[str]], path_from: str | PathLike[str],
             extracted.append(moodle_id)
 
     return extracted
+
+
+def find_pex_submission(id: int, submissions: str | PathLike[str]) -> Path:
+    submission_folder = find_single_path(f"*{id}*{config.MOODLE_SUBMISSION_KEYWORD}", submissions)
+    return find_single_path("*.ipynb", submission_folder,
+                            filter_fun=lambda p: not p.name.endswith("-checkpoint.ipynb") and not p.name.startswith("._"))
 
 
 def parse_submission_filename(path: Path) -> (str, int, str, (float | None)):

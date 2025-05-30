@@ -62,32 +62,32 @@ class PexFeedback:
         return cls(points, test_output, additional_feedback)
 
 
-    def as_editable_text(self, header: str) -> str:
+    def as_editable_text(self, header: str) -> List[str]:
         text = ""
         if header:
             text += f"{header}\n"
         text += f"# Lines starting with '#' are ignored. Do not remove lines starting with '{config.PEX_TEXT_DIVIDER}'.\n"
         text += f"\n"
-        text += f"# Test Output:\n{config.PEX_TEXT_DIVIDER}{self.test_output}{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Test Output:\n{config.PEX_TEXT_DIVIDER}\n{self.test_output}\n{config.PEX_TEXT_DIVIDER}\n"
         text += f"\n"
-        text += f"# Additional Feedback:\n{config.PEX_TEXT_DIVIDER}{self.additional_feedback}{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Additional Feedback:\n{config.PEX_TEXT_DIVIDER}\n{self.additional_feedback}\n{config.PEX_TEXT_DIVIDER}\n"
         text += f"\n"
-        text += f"# Points:\n{config.PEX_TEXT_DIVIDER}{self.points}{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Points:\n{config.PEX_TEXT_DIVIDER}\n{self.points}\n{config.PEX_TEXT_DIVIDER}\n"
 
-        return text
+        return text.splitlines()
 
     @classmethod
-    def from_editable_text(cls, text: str):
+    def from_editable_text(cls, text: List[str]):
         # filter empty lines and comments
-        filtered_lines = filter(lambda l: len(l) > 0 and not l.startswith('#'), text.splitlines())
+        filtered_lines = filter(lambda l: len(l) > 0 and not l.startswith('#'), text)
         text = '\n'.join(filtered_lines)
 
         text = text.split(config.PEX_TEXT_DIVIDER)
 
         try:
-            test_output = text[1]
-            additional_feedback = text[3]
-            points = text[5]
+            test_output = text[1].strip()
+            additional_feedback = text[3].strip()
+            points = text[5].strip()
         except IndexError:
             test_output = additional_feedback = points = ""
 
@@ -110,29 +110,37 @@ class PexGrader:
         util.run_command(f"docker build -t {self.pex_name}-docker --build-arg exercise={self.pex_name} {self.grading_package}")
 
 
-    def grade(self, submission: Path, verbose: bool = False) -> PexFeedback:
+    def grade(self, submission: Path) -> PexFeedback:
         # create folder structure needed for docker container / grading scripts
         grading_folder = file_mgmt.create_temporary_folder()
         grading_source = grading_folder / Path(f"{self.pex_name}/group-{config.PEX_DOCKER_GROUP_NAME}")
         grading_target = grading_folder / Path(f"{self.pex_name}-grading")
 
         file_mgmt.create_folder(grading_source)
-        shutil.copy2(submission, grading_source)
+        shutil.copy2(submission, grading_source / f"sc-{self.pex_name}.ipynb")
 
         # initiate grading by starting the docker container
         util.info(f"Grading submission '{submission}'...")
-        util.run_command( "docker run --rm "
+        success, stdout = util.run_potentially_failing_command( "docker run --rm "
                          f"--mount type=bind,source={grading_folder.resolve()},target=/submissions "
                          f"--mount type=bind,source={grading_target.resolve()},target=/grading_schemes "
                          f"--name {self.pex_name}-docker-group-{config.PEX_DOCKER_GROUP_NAME} "
-                         f"{self.pex_name}-docker {self.pex_name} {config.PEX_DOCKER_GROUP_NAME}", show_output=verbose)
+                         f"{self.pex_name}-docker {self.pex_name} {config.PEX_DOCKER_GROUP_NAME}")
 
-        # parse feedback file
-        feedback_file = file_mgmt.find_single_path('*.json', grading_target)
-        with open(feedback_file, 'r') as f:
-            d = json.load(f)
-        grade_text, reached_points = _json_to_txt(d)
-        reached_points = float(reached_points)
+        if success:
+            # re-print stdout
+            util.info(stdout, always_display=True, append_full_stop=False)
+
+            # parse feedback file
+            feedback_file = file_mgmt.find_single_path('*.json', grading_target)
+            with open(feedback_file, 'r') as f:
+                d = json.load(f)
+            grade_text, reached_points = _json_to_txt(d)
+            reached_points = float(reached_points)
+        else:
+            util.info(f"Automatic grading FAILED:\n\n{stdout}", always_display=True, append_full_stop=False)
+            grade_text = f"Failed to run tests:\n{stdout}"
+            reached_points = 0
 
         # cleanup created folder structure
         file_mgmt.delete_folder(grading_folder)
