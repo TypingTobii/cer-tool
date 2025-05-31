@@ -317,7 +317,7 @@ def open_file(path: str | PathLike[str]) -> None:
     if platform.system() == 'Darwin':  # macOS
         subprocess.Popen(('open', path), start_new_session=True)
     elif platform.system() == 'Windows':  # Windows
-        subprocess.Popen(('start', path), creationflags=subprocess.DETACHED_PROCESS)
+        subprocess.Popen(('start', path), creationflags=subprocess.DETACHED_PROCESS, shell=True)
     else:  # linux variants
         subprocess.Popen(('xdg-open', path), start_new_session=True)
 
