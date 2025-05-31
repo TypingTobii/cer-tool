@@ -313,12 +313,13 @@ def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: s
 def open_file(path: str | PathLike[str]) -> None:
     path = Path(path)
     # taken from: https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
+    # and https://stackoverflow.com/questions/5772873/python-spawn-off-a-child-subprocess-detach-and-exit
     if platform.system() == 'Darwin':  # macOS
-        subprocess.call(('open', path))
+        subprocess.Popen(f"python -c \"import subprocess; subprocess.call(('open', {path}))\"", start_new_session=True)
     elif platform.system() == 'Windows':  # Windows
-        os.startfile(path)
+        subprocess.Popen(f"python -c \"import os; os.startfile('{path}')\"", creationflags=subprocess.DETACHED_PROCESS)
     else:  # linux variants
-        subprocess.call(('xdg-open', path))
+        subprocess.Popen(f"python -c \"import subprocess; subprocess.call(('xdg-open', {path}))\"", start_new_session=True)
 
 
 def replace_in_file(path: str | PathLike[str], old: str, replacement: str) -> None:
