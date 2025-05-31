@@ -41,10 +41,16 @@ if (-Not (Test-Path $activateScript)) {
 # Activate virtual environment
 & $activateScript
 
-# Run the Python script with forwarded arguments
-python $SCRIPT @args
-
-# Deactivate the virtual environment
-if (Get-Command deactivate -ErrorAction SilentlyContinue) {
-    deactivate
+try
+{
+    # Run the Python script with forwarded arguments
+    python $SCRIPT @args
+}
+finally
+{
+    # Deactivate the virtual environment
+    if (Get-Command deactivate -ErrorAction SilentlyContinue)
+    {
+        deactivate
+    }
 }
