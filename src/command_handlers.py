@@ -157,14 +157,16 @@ def grade_pex(args: Namespace) -> None:
                                     console_header=f"{title}\n{len(title) * '─'}" )
 
         gs.save(out_grading_sheet)
-        util.info("", always_display=True)
-        answer = util.choose_option({"y", "n"}, "y", "Continue with the next group?")
-        if answer != "y":
-            break
+        if i != len(groups) - 1:
+            util.info("", always_display=True)
+            answer = util.choose_option({"y", "n"}, "y", "Continue with the next group?")
+            if answer != "y":
+                break
 
     util.clear_console()
+    util.info(f"Grading finished. Updated {updated_grades} of {len(member_ids)} grades.", always_display=True)
+    util.info("", always_display=True)
+
+    util.wait_for_user("Please close all opened submission/grading files and press ENTER to continue ...")
     grader.cleanup()
     file_mgmt.cleanup()
-
-    util.info("", always_display=True)
-    util.info(f"Updated {updated_grades} of {len(member_ids)} grades.", always_display=True)
