@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     # prepare
     parser_prepare = subparsers.add_parser("prepare", aliases=["pp"],
-                                           help="gather and rename submission files, s.t. they can be easily graded with Notability",
-                                           description="gather and rename submission files, s.t. they can be easily graded with Notability")
+                                           help="gather and rename submission files, s.t. they can be easily graded with a PDF annotator",
+                                           description="gather and rename submission files, s.t. they can be easily graded with a PDF annotator")
     parser_prepare.set_defaults(func=command_handlers.prepare)
 
     parser_prepare_group_input = parser_prepare.add_argument_group("input files")
