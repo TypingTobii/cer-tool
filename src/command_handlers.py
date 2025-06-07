@@ -44,8 +44,8 @@ def edit_feedback(args: Namespace) -> None:
 
     # create a new file with current feedback
     feedback_current = gs.get_comment(id)
-    info_line = f"# (DO NOT DELETE THIS LINE) Editing comment for {gs.get_name(id)} (id: {id}, {gs.get_points(id) or 'N/A'} points):\n"
     file_mgmt.create_file(config.FILE_NAME_COMMENT, [info_line] + feedback_current)
+    info_line = f"# Editing comment for {gs.get_name(id)} (id: {id}, {gs.get_points(id) or 'N/A'} points):\n"
 
     # open text editor to edit feedback
     file_mgmt.open_file(config.FILE_NAME_COMMENT)
@@ -54,7 +54,8 @@ def edit_feedback(args: Namespace) -> None:
     util.wait_for_user("Please edit the comment, save the file and press ENTER to continue...")
 
     # retrieve changes
-    feedback_new = file_mgmt.read_file(config.FILE_NAME_COMMENT)[1:]
+    feedback_new_raw = file_mgmt.read_file(config.FILE_NAME_COMMENT)
+    feedback_new = list(filter(lambda l: len(l) > 0 and not l.startswith('#'), feedback_new_raw))
     file_mgmt.delete_file(config.FILE_NAME_COMMENT)
     if grading_sheet.encode_comment(feedback_new) == grading_sheet.encode_comment(feedback_current):
         util.warning("No changes to the comment.")
