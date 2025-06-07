@@ -6,7 +6,7 @@ from typing import Tuple, List
 
 import util
 import file_mgmt
-import config
+from config import config
 import grading_sheet
 
 class PexFeedback:
@@ -50,18 +50,18 @@ class PexFeedback:
     def as_html(self) -> str:
         html = ""
         html += f"<p><span style=\"text-decoration: underline;\">Ausgabe der automatischen Tests</span>:</p>"
-        html += f"<pre class=\"language-markup\"><code>{config.PEX_HTML_MAGIC_COMMENT}{self.test_output}{config.PEX_HTML_MAGIC_COMMENT}</code></pre>"
+        html += f"<pre class=\"language-markup\"><code>{config.get("pex.html_magic_comment")}{self.test_output}{config.get("pex.html_magic_comment")}</code></pre>"
 
         if self.additional_feedback:
             feedback_html = grading_sheet.encode_comment(self.additional_feedback.splitlines())
             html += f"<p><span style=\"text-decoration: underline;\">Zusätzliches Feedback</span>:</p>"
-            html += f"{config.PEX_HTML_MAGIC_COMMENT}{feedback_html}{config.PEX_HTML_MAGIC_COMMENT}"
+            html += f"{config.get("pex.html_magic_comment")}{feedback_html}{config.get("pex.html_magic_comment")}"
 
         return html
 
     @classmethod
     def from_html(cls, html: str, points: float):
-        html = html.split(config.PEX_HTML_MAGIC_COMMENT)
+        html = html.split(config.get("pex.html_magic_comment"))
         try:
             test_output = html[1].strip()
         except IndexError:
@@ -81,13 +81,13 @@ class PexFeedback:
         text = ""
         if header:
             text += f"{header}\n"
-        text += f"# Lines starting with '#' are ignored. Do not remove lines starting with '{config.PEX_TEXT_DIVIDER}'.\n"
+        text += f"# Lines starting with '#' are ignored. Do not remove lines starting with '{config.get("pex.text_divider")}'.\n"
         text += f"\n"
-        text += f"# Test Output:\n{config.PEX_TEXT_DIVIDER}\n{self.test_output}\n{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Test Output:\n{config.get("pex.text_divider")}\n{self.test_output}\n{config.get("pex.text_divider")}\n"
         text += f"\n"
-        text += f"# Additional Feedback:\n{config.PEX_TEXT_DIVIDER}\n{self.additional_feedback}\n{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Additional Feedback:\n{config.get("pex.text_divider")}\n{self.additional_feedback}\n{config.get("pex.text_divider")}\n"
         text += f"\n"
-        text += f"# Points:\n{config.PEX_TEXT_DIVIDER}\n{self.points}\n{config.PEX_TEXT_DIVIDER}\n"
+        text += f"# Points:\n{config.get("pex.text_divider")}\n{self.points}\n{config.get("pex.text_divider")}\n"
 
         return text.splitlines()
 
@@ -97,7 +97,7 @@ class PexFeedback:
         filtered_lines = filter(lambda l: len(l) > 0 and not l.startswith('#'), text)
         text = '\n'.join(filtered_lines)
 
-        text = text.split(config.PEX_TEXT_DIVIDER)
+        text = text.split(config.get("pex.text_divider"))
 
         try:
             test_output = text[1].strip()
@@ -128,7 +128,7 @@ class PexGrader:
     def grade(self, submission: Path) -> PexFeedback:
         # create folder structure needed for docker container / grading scripts
         grading_folder = file_mgmt.create_temporary_folder()
-        grading_source = grading_folder / Path(f"{self.pex_name}/group-{config.PEX_DOCKER_GROUP_NAME}")
+        grading_source = grading_folder / Path(f"{self.pex_name}/group-{config.get("pex.docker_group_name")}")
         grading_target = grading_folder / Path(f"{self.pex_name}-grading")
 
         file_mgmt.create_folder(grading_source)
@@ -140,8 +140,8 @@ class PexGrader:
         success, stdout = util.run_potentially_failing_command( "docker run --rm "
                          f"--mount type=bind,source={grading_folder.resolve()},target=/submissions "
                          f"--mount type=bind,source={grading_target.resolve()},target=/grading_schemes "
-                         f"--name {self.pex_name}-docker-group-{config.PEX_DOCKER_GROUP_NAME} "
-                         f"{self.pex_name}-docker {self.pex_name} {config.PEX_DOCKER_GROUP_NAME}")
+                         f"--name {self.pex_name}-docker-group-{config.get("pex.docker_group_name")} "
+                         f"{self.pex_name}-docker {self.pex_name} {config.get("pex.docker_group_name")}")
 
         if success:
             # re-print stdout
@@ -201,12 +201,12 @@ def grade_pex_group(group: List[str], group_ids: List[int], path_submissions: Pa
 
     def edit_feedback():
         feedback_text = current_feedback.as_editable_text(f"# Editing feedback for group {group}:")
-        file_mgmt.create_file(config.FILE_NAME_COMMENT, feedback_text)
-        file_mgmt.open_file(config.FILE_NAME_COMMENT)
+        file_mgmt.create_file(config.get("filenames.edit_feedback_file"), feedback_text)
+        file_mgmt.open_file(config.get("filenames.edit_feedback_file"))
         util.wait_for_user("Please edit the feedback, save the file and press ENTER to continue ...")
 
-        new_feedback = PexFeedback.from_editable_text(file_mgmt.read_file(config.FILE_NAME_COMMENT))
-        file_mgmt.delete_file(config.FILE_NAME_COMMENT)
+        new_feedback = PexFeedback.from_editable_text(file_mgmt.read_file(config.get("filenames.edit_feedback_file")))
+        file_mgmt.delete_file(config.get("filenames.edit_feedback_file"))
         current_feedback.replace_with(new_feedback)
 
 
@@ -270,7 +270,11 @@ def grade_pex_group(group: List[str], group_ids: List[int], path_submissions: Pa
                 for id in group_ids:
                     gs.set_points(id, current_feedback.points)
                     gs.set_comment(id, current_feedback.as_html(), encode=False)
-                    gs.append_comment(id, config.MOODLE_FEEDBACK_STANDARD_TEXT)
+
+                    feedback_footer = config.get("moodle.feedback_footer")
+                    feedback_footer_with_initials = list(
+                        map(lambda s: s.format(config.get("initials")), feedback_footer))
+                    gs.append_comment(id, feedback_footer_with_initials)
                     updated_grades += 1
                 finished = True
 

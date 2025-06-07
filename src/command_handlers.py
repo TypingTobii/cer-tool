@@ -4,7 +4,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import List
 
-import config
+from config import config
 import file_mgmt
 import grading_sheet
 import util
@@ -44,19 +44,20 @@ def edit_feedback(args: Namespace) -> None:
 
     # create a new file with current feedback
     feedback_current = gs.get_comment(id)
-    file_mgmt.create_file(config.FILE_NAME_COMMENT, [info_line] + feedback_current)
     info_line = f"# Editing comment for {gs.get_name(id)} (id: {id}, {gs.get_points(id) or 'N/A'} points):\n"
+    file_mgmt.create_file(config.get("filenames.edit_feedback_file"), [info_line] + feedback_current)
 
     # open text editor to edit feedback
-    file_mgmt.open_file(config.FILE_NAME_COMMENT)
+    file_mgmt.open_file(config.get("filenames.edit_feedback_file"))
+    file_mgmt.open_file(config.get("filenames.edit_feedback_file"))
 
     # wait until the user has finished
     util.wait_for_user("Please edit the comment, save the file and press ENTER to continue...")
 
     # retrieve changes
-    feedback_new_raw = file_mgmt.read_file(config.FILE_NAME_COMMENT)
+    feedback_new_raw = file_mgmt.read_file(config.get("filenames.edit_feedback_file"))
     feedback_new = list(filter(lambda l: len(l) > 0 and not l.startswith('#'), feedback_new_raw))
-    file_mgmt.delete_file(config.FILE_NAME_COMMENT)
+    file_mgmt.delete_file(config.get("filenames.edit_feedback_file"))
     if grading_sheet.encode_comment(feedback_new) == grading_sheet.encode_comment(feedback_current):
         util.warning("No changes to the comment.")
         return
@@ -108,7 +109,9 @@ def finish(args: Namespace) -> None:
 
         # insert points and feedback into the grading sheet
         gs.set_points(id, points)
-        gs.append_comment(id, config.MOODLE_FEEDBACK_STANDARD_TEXT)
+        feedback_footer = config.get("moodle.feedback_footer")
+        feedback_footer_with_initials = list(map(lambda s: s.format(config.get("initials")), feedback_footer))
+        gs.append_comment(id, feedback_footer_with_initials)
 
         processed_successfully += 1
         updated_ids.append(id)

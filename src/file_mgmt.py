@@ -15,12 +15,12 @@ shutil.register_unpack_format('7zip', ['.7z'], py7zr.unpack_7zarchive)
 shutil.register_archive_format('7zip', py7zr.pack_7zarchive, description='7zip archive')
 
 import util
-import config
+from config import config
 
 
 temporary_folders: List[Path] = []
 def _get_temporary_name() -> str:
-    return config.FOLDER_NAME_TEMP.format(len(temporary_folders))
+    return config.get("filenames.tmp_folder").format(len(temporary_folders))
 
 
 def check_path(path: str) -> Path:
@@ -113,7 +113,10 @@ def zip_folder(path: str, output_path: str) -> None:
     util.info(f" ZIP: '{path}' → '{output_path}.zip'")
 
 
-def zip_folder_with_limit(path: str | PathLike[str], output_path: str, limit_bytes: int = config.MOODLE_FILE_UPLOAD_LIMIT_BYTES) -> int:
+def zip_folder_with_limit(path: str | PathLike[str], output_path: str,
+                          limit_bytes: int | None = None) -> int:
+    limit_bytes = config.get("moodle.file_upload_limit_bytes") if limit_bytes is None else limit_bytes
+
     def partition(files: List[Tuple[Path, int]], acc_size: int = 0, acc: List[Path] = None) -> List[List[Path]]:
         if not files:
             return [acc] if acc is not None else []
@@ -226,7 +229,7 @@ def extract_theoretical_submissions(groups: List[List[str]], path_from: str | Pa
 
     for groupIdx, group in enumerate(groups):
         for memberIdx, member in enumerate(group):
-            submission_folder = find_single_path(f"*{member}*{config.MOODLE_SUBMISSION_KEYWORD}*", path_from)
+            submission_folder = find_single_path(f"*{member}*{config.get("moodle.submission_keyword")}*", path_from)
             moodle_id = submission_folder.name.split("_")[1]
 
             prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
@@ -239,7 +242,7 @@ def extract_theoretical_submissions(groups: List[List[str]], path_from: str | Pa
 
 
 def find_pex_submission(id: int, submissions: str | PathLike[str]) -> Path:
-    submission_folder = find_single_path(f"*{id}*{config.MOODLE_SUBMISSION_KEYWORD}", submissions)
+    submission_folder = find_single_path(f"*{id}*{config.get("moodle.submission_keyword")}", submissions)
     return find_single_path("*.ipynb", submission_folder,
                             filter_fun=lambda p: not p.name.endswith("-checkpoint.ipynb") and not p.name.startswith("._"))
 
@@ -298,10 +301,10 @@ def copy_feedback_files(keyword: str, path_from: str | PathLike[str], path_to: s
             util.warning(f"No points found inside '{file.name}'.", "File will not be included as feedback.")
             continue
 
-        filename = f"{student_name}_{student_id}_{config.MOODLE_SUBMISSION_KEYWORD}_{config.MOODLE_FEEDBACK_FILENAME_PREFIX}"
+        filename = f"{student_name}_{student_id}_{config.get("moodle.submission_keyword")}_{config.get("filenames.feedback_filename_prefix")}"
         if submission_name:
             filename += f"_{submission_name}"
-        filename += f"_(Datei {file_id})_{config.MOODLE_FEEDBACK_FILENAME_SUFFIX}{file.suffix}"
+        filename += f"_(Datei {file_id})_{config.get("initials")}{file.suffix}"
 
         shutil.copy2(file, path_to / filename)
         copied += 1

@@ -1,0 +1,78 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "filenames": {
+            "type": "object",
+            "properties": {
+                "edit_feedback_file": {
+                    "type": "string"
+                },
+                "feedback_filename_prefix": {
+                    "type": "string"
+                },
+                "tmp_folder": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "edit_feedback_file",
+                "feedback_filename_prefix",
+                "tmp_folder"
+            ]
+        },
+        "initials": {
+            "type": "string"
+        },
+        "moodle": {
+            "type": "object",
+            "properties": {
+                "feedback_footer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "file_upload_limit_bytes": {
+                    "type": "integer"
+                },
+                "submission_keyword": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "feedback_footer",
+                "file_upload_limit_bytes",
+                "submission_keyword"
+            ]
+        },
+        "pex": {
+            "type": "object",
+            "properties": {
+                "docker_group_name": {
+                    "type": "string"
+                },
+                "text_divider": {
+                    "type": "string"
+                },
+                "html_magic_comment": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "docker_group_name",
+                "text_divider",
+                "html_magic_comment"
+            ]
+        },
+        "verbose": {
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "filenames",
+        "initials",
+        "moodle",
+        "pex"
+    ]
+}

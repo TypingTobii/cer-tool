@@ -1,15 +1,171 @@
-FOLDER_NAME_TEMP = "__CER_TOOL_TEMP_FOLDER{}__"
-FILE_NAME_COMMENT = "__CER_TOOL_TEMP_COMMENT__.txt"
+import json
+import importlib.resources
+from jsonschema import validate
+from platformdirs import user_config_path
+from pathlib import Path
 
-MOODLE_SUBMISSION_KEYWORD = "assignsubmission_file"
+from jsonschema.exceptions import ValidationError
+from importlib.resources.abc import Traversable
+from typing import Union, List, Tuple, Callable, Type
 
-MOODLE_FEEDBACK_STANDARD_TEXT = ["<strong>- TH</strong>"]
-MOODLE_FEEDBACK_FILENAME_PREFIX = "Feedback"
-MOODLE_FEEDBACK_FILENAME_SUFFIX = "TH"
-MOODLE_FILE_UPLOAD_LIMIT_BYTES = 25 * 10**6 - 500
+# FOLDER_NAME_TEMP = "__CER_TOOL_TEMP_FOLDER{}__"
+# FILE_NAME_COMMENT = "__CER_TOOL_TEMP_COMMENT__.txt"
+#
+# MOODLE_SUBMISSION_KEYWORD = "assignsubmission_file"
+#
+# MOODLE_FEEDBACK_STANDARD_TEXT = ["<strong>- TH</strong>"]
+# MOODLE_FEEDBACK_FILENAME_PREFIX = "Feedback"
+# MOODLE_FEEDBACK_FILENAME_SUFFIX = "TH"
+# MOODLE_FILE_UPLOAD_LIMIT_BYTES = 25 * 10**6 - 500
+#
+# PEX_DOCKER_GROUP_NAME = "cer-tool"
+# PEX_HTML_MAGIC_COMMENT = "<!--%%%-->"
+# PEX_TEXT_DIVIDER = '%'
+#
+# VERBOSE = True # automatically set by main.py
 
-PEX_DOCKER_GROUP_NAME = "cer-tool"
-PEX_HTML_MAGIC_COMMENT = "<!--%%%-->"
-PEX_TEXT_DIVIDER = '%'
+# includes all settings to be loaded from the config file
+_config: dict = {}
+# whether the configuration is valid or needs to be checked
+_verified: bool = False
 
-VERBOSE = True # automatically set by main.py
+type Config_Entry = Union[str, int, bool, List[str]]
+
+_CONFIG_PATH: Path = user_config_path("cer-tool", ensure_exists=True) / "config.json"
+_CONFIG_SCHEMA_PATH: Traversable = importlib.resources.files("cer_tool").joinpath("config.schema.json")
+
+_CONFIG_CHECKS : List[Tuple[Callable[[dict], bool], str]] = [
+    (lambda c: c["initials"] != "???", "initials not set"),
+    (lambda c: "{}" in c["filenames"]["tmp_folder"], "tmp folder filename must include a placeholder"),
+    (lambda c: "{}" in "".join(c["moodle"]["feedback_footer"]), "feedback footer must include a placeholder"),
+    (lambda c: c["pex"]["text_divider"] != "", "text divider must not be empty")
+]
+
+_default_config: dict = {
+    "initials": "???",
+    "filenames": {
+        "tmp_folder": "__CER_TOOL_TEMP_FOLDER{}__",
+        "edit_feedback_file": "__CER_TOOL_TEMP_COMMENT__.txt",
+        "feedback_filename_prefix": "Feedback"
+    },
+    "moodle": {
+        "submission_keyword": "assignsubmission_file",
+        "feedback_footer": [
+            "<strong>- {}</strong>"
+        ],
+        "file_upload_limit_bytes": 24999500
+    },
+    "pex": {
+        "text_divider": "%",
+        "html_magic_comment": "<!--%%%-->",
+        "docker_group_name": "cer-tool"
+    }
+}
+
+def _initialise() -> None:
+    global _config, _verified
+
+    if _CONFIG_PATH.exists():
+        with open(_CONFIG_PATH, 'r') as file:
+            _config = json.load(file)
+    else:
+        _config = _default_config
+        _save_without_verifying()
+
+    _verified = False
+
+
+def save() -> None:
+    _verify()
+    _save_without_verifying()
+
+def _save_without_verifying() -> None:
+    with open(_CONFIG_PATH, 'w') as file:
+        json.dump(_config, file, indent=4, sort_keys=True)
+
+
+def set(key_path: str, value: Config_Entry) -> None:
+    keys = key_path.split(".")
+    data = _config
+    for key in keys[:-1]:
+        if key not in data or not isinstance(data[key], dict):
+            data[key] = {}
+        data = data[key]
+    data[keys[-1]] = value
+
+    _verify()
+
+
+def set_json(key_path: str, value: str) -> None:
+    if _typeof(key_path) is not str:
+        try:
+            parsed_value: Config_Entry = json.loads(value)
+        except json.JSONDecodeError as err:
+            util.error(f"Failed to parse input '{value}': {err.msg}")
+            return
+    else:
+        parsed_value = value
+
+    set(key_path, parsed_value)
+
+
+def get(key_path: str) -> Config_Entry:
+    _verify()
+    keys = key_path.split('.')
+    data = _config
+
+    for key in keys:
+        if key not in data.keys():
+            util.error(f"Internal error: Config object does not contain key: {key}")
+        data = data[key]
+    return data
+
+def _typeof(key_path: str) -> Type:
+    keys = key_path.split('.')
+    data = _config
+
+    for key in keys:
+        if key not in data.keys():
+            util.error(f"Internal error: Config object does not contain key: {key}")
+        data = data[key]
+    return type(data)
+
+
+def as_str() -> str:
+    def rec(path: str, sub_settings: dict) -> str:
+        acc = ""
+        for key in sub_settings.keys():
+            if isinstance(sub_settings[key], dict):
+                acc += rec(f"{path}{key}.", sub_settings[key])
+            else:
+                acc += f"{path}{key} = {json.dumps(sub_settings[key])}\n"
+        return acc
+
+    return rec("", _config).strip()
+
+
+def _verify() -> None:
+    global _verified
+
+    if _verified:
+        return
+
+    with _CONFIG_SCHEMA_PATH.open('r') as schema_file:
+        schema = json.load(schema_file)
+
+    # verify schema
+    try:
+        validate(_config, schema)
+    except ValidationError as e:
+        util.error(f"Invalid config:\n{e.message}")
+
+    # verify using additional checks
+    for check_fun, err_msg in _CONFIG_CHECKS:
+        if not check_fun(_config):
+            util.error(f"Invalid config: {err_msg}")
+
+    _verified = True
+
+
+
+_initialise()

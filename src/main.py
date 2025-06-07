@@ -1,6 +1,6 @@
 import argparse
 
-import config
+from config import config
 import command_handlers
 import file_mgmt
 import util
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     args = parser_main.parse_args()
 
-    config.VERBOSE = args.verbose
+    config.set("verbose", args.verbose)
     try:
         args.func(args)
     except KeyboardInterrupt:
