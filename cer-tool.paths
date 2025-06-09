@@ -1,2 +1,2 @@
 ENV=.venv
-SCRIPT=src/main.py
+CMD=cer-tool

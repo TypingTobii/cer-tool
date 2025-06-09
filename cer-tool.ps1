@@ -23,13 +23,13 @@ foreach ($line in $config) {
 }
 
 # Validate presence of required keys
-if (-not $settings.ContainsKey("ENV") -or -not $settings.ContainsKey("SCRIPT")) {
-    Write-Error "Missing ENV or SCRIPT entry in config file."
+if (-not $settings.ContainsKey("ENV") -or -not $settings.ContainsKey("CMD")) {
+    Write-Error "Missing ENV or CMD entry in config file."
     exit 1
 }
 
 $ENV = $settings["ENV"]
-$SCRIPT = $settings["SCRIPT"]
+$CMD = $settings["CMD"]
 
 # Check that activate script exists
 $activateScript = Join-Path $ENV "Scripts\Activate.ps1"
@@ -44,7 +44,7 @@ if (-Not (Test-Path $activateScript)) {
 try
 {
     # Run the Python script with forwarded arguments
-    python $SCRIPT @args
+    & $CMD @args
 }
 finally
 {

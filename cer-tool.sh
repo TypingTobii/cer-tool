@@ -12,17 +12,17 @@ fi
 
 # Read and parse config
 ENV=""
-SCRIPT=""
+CMD=""
 while IFS='=' read -r key value; do
   case "$key" in
     "ENV") ENV="$value" ;;
-    "SCRIPT") SCRIPT="$value" ;;
+    "CMD") CMD="$value" ;;
     *) echo "Error: Invalid line in config: '$key=$value'" >&2; exit 1 ;;
   esac
 done < <(grep '=' "$CONFIG_FILE")
 
 # Check for required variables
-if [[ -z "$ENV" || -z "$SCRIPT" ]]; then
+if [[ -z "$ENV" || -z "$CMD" ]]; then
   echo "Error: Missing ENV or SCRIPT entry in config file." >&2
   exit 1
 fi
@@ -38,7 +38,7 @@ fi
 source "$ACTIVATE_SCRIPT"
 
 # Run the Python script with all forwarded arguments
-python "$SCRIPT" "$@"
+eval "$CMD" "$@"
 
 # Deactivate the virtual environment
 deactivate
