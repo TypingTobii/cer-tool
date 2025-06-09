@@ -3,7 +3,7 @@ import subprocess
 import sys
 from typing import List, Set, Any, Tuple
 
-import config
+from cer_tool.flags import flags
 
 
 # handle unrecoverable errors
@@ -24,7 +24,7 @@ def warning(message: str, consequence: str = None) -> None:
 
 
 def info(message: str, always_display: bool = False, append_full_stop=True) -> None:
-    if not (always_display or config.get("verbose")):
+    if not (always_display or flags["verbose"]):
         return
     if message and append_full_stop:
         message = message + "." if message[-1] != "." else message
@@ -33,7 +33,7 @@ def info(message: str, always_display: bool = False, append_full_stop=True) -> N
 
 def clear_console(console_header: str | None = None) -> None:
     # disable this functionality if cer-tool is in verbose mode (s.t. no messages get lost)
-    if config.get("verbose"):
+    if flags["verbose"]:
         return
 
     if os.name == "nt":
@@ -108,7 +108,7 @@ def index_to_ascii(index: int, zero_based: bool = True) -> str:
 
 
 def run_command(command: str, show_output=True):
-    if config.get("verbose") or show_output:
+    if flags["verbose"] or show_output:
         result = subprocess.run(command, shell=True)
         if result.returncode != 0:
             error(f"Command '{command}' exited unsuccessfully. See the above output for details.")

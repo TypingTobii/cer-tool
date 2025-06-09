@@ -1,12 +1,10 @@
 import argparse
 
-from config import config
-import command_handlers
-import file_mgmt
-import util
+from cer_tool import command_handlers, file_mgmt, util
+from cer_tool.flags import flags
 
 
-if __name__ == "__main__":
+def main():
     parser_main = argparse.ArgumentParser(prog="cer-tool", description="Simplify grading upload to Moodle.")
     subparsers = parser_main.add_subparsers(required=True,
                                             title="subcommands", description="The following commands are available:",
@@ -81,12 +79,37 @@ if __name__ == "__main__":
                             help="custom path for output grading sheet (default: overwrite input file)")
     parser_pex.set_defaults(func=command_handlers.grade_pex)
 
+    # config
+    parser_config = subparsers.add_parser("config",
+                                          help="view or edit the configuration of this tool",
+                                          description="view or edit the configuration of this tool")
+    config_subparsers = parser_config.add_subparsers(required=True,
+                                                     title="config subcommands", description="The following commands are available:",
+                                                     help="command to be executed")
+
+    # config-list
+    parser_config_list = config_subparsers.add_parser("list", aliases=["l"],
+                                                      help="list the current configuration", description="list the current configuration")
+    parser_config_list.set_defaults(func=command_handlers.config_list)
+
+    # config-edit
+    parser_config_edit = config_subparsers.add_parser("edit", aliases=["e"],
+                                                      help="edit a setting in the current configuration",
+                                                      description="edit a setting in the current configuration")
+    parser_config_edit.add_argument("key", help="the setting to edit")
+    parser_config_edit.add_argument("value", help="the new value of this setting, in JSON notation, i.e. string must be double-qouted")
+    parser_config_edit.set_defaults(func=command_handlers.config_edit)
+
 
     args = parser_main.parse_args()
 
-    config.set("verbose", args.verbose)
+    flags["verbose"] = args.verbose
     try:
         args.func(args)
     except KeyboardInterrupt:
         file_mgmt.cleanup()
         util.warning("Aborted by user.", "Some temporary files or folders may have been left.")
+
+
+if __name__ == '__main__':
+    main()

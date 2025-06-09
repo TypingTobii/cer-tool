@@ -8,21 +8,7 @@ from jsonschema.exceptions import ValidationError
 from importlib.resources.abc import Traversable
 from typing import Union, List, Tuple, Callable, Type
 
-# FOLDER_NAME_TEMP = "__CER_TOOL_TEMP_FOLDER{}__"
-# FILE_NAME_COMMENT = "__CER_TOOL_TEMP_COMMENT__.txt"
-#
-# MOODLE_SUBMISSION_KEYWORD = "assignsubmission_file"
-#
-# MOODLE_FEEDBACK_STANDARD_TEXT = ["<strong>- TH</strong>"]
-# MOODLE_FEEDBACK_FILENAME_PREFIX = "Feedback"
-# MOODLE_FEEDBACK_FILENAME_SUFFIX = "TH"
-# MOODLE_FILE_UPLOAD_LIMIT_BYTES = 25 * 10**6 - 500
-#
-# PEX_DOCKER_GROUP_NAME = "cer-tool"
-# PEX_HTML_MAGIC_COMMENT = "<!--%%%-->"
-# PEX_TEXT_DIVIDER = '%'
-#
-# VERBOSE = True # automatically set by main.py
+from cer_tool import util
 
 # includes all settings to be loaded from the config file
 _config: dict = {}

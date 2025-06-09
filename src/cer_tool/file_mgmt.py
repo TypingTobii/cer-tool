@@ -14,8 +14,7 @@ import py7zr
 shutil.register_unpack_format('7zip', ['.7z'], py7zr.unpack_7zarchive)
 shutil.register_archive_format('7zip', py7zr.pack_7zarchive, description='7zip archive')
 
-import util
-from config import config
+from cer_tool import util, config
 
 
 temporary_folders: List[Path] = []

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cer-tool"
+version = "0.9.0"
+dependencies = ["pandas", "py7zr", "jsonschema", "platformdirs"]
+readme = "README.md"
+
+[project.scripts]
+cer-tool = "cer_tool.main:main"

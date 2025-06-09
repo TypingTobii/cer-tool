@@ -4,10 +4,7 @@ from pathlib import Path
 import math
 from typing import Tuple, List
 
-import util
-import file_mgmt
-from config import config
-import grading_sheet
+from cer_tool import util, file_mgmt, config, grading_sheet
 
 class PexFeedback:
     test_output: str = ""
@@ -137,7 +134,7 @@ class PexGrader:
 
         # initiate grading by starting the docker container
         util.info(f"Grading submission '{submission}'...")
-        success, stdout = util.run_potentially_failing_command( "docker run --rm "
+        success, stdout = util.run_potentially_failing_command("docker run --rm "
                          f"--mount type=bind,source={grading_folder.resolve()},target=/submissions "
                          f"--mount type=bind,source={grading_target.resolve()},target=/grading_schemes "
                          f"--name {self.pex_name}-docker-group-{config.get("pex.docker_group_name")} "

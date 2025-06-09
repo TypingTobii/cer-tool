@@ -6,7 +6,7 @@ from os import PathLike
 import pandas as pd
 from pandas.core.frame import DataFrame
 
-import util
+from cer_tool import util
 
 
 class GradingSheet:

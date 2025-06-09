@@ -1,14 +1,8 @@
 import itertools
-import argparse
 from argparse import Namespace
 from pathlib import Path
-from typing import List
 
-from config import config
-import file_mgmt
-import grading_sheet
-import util
-import pex_grading
+from cer_tool import config, file_mgmt, grading_sheet, util, pex_grading
 
 
 def prepare(args: Namespace) -> None:
@@ -156,9 +150,9 @@ def grade_pex(args: Namespace) -> None:
     for i, group in enumerate(groups):
         title = f"Grading group {i + 1} of {len(groups)} ({i / len(groups) * 100:.0f} % done)"
         updated_grades += pex_grading.grade_pex_group(group,
-                                    list(map(lambda name: member_ids[name], group)),
-                                    path_submissions, grader, gs,
-                                    console_header=f"{title}\n{len(title) * '─'}" )
+                                                      list(map(lambda name: member_ids[name], group)),
+                                                      path_submissions, grader, gs,
+                                                      console_header=f"{title}\n{len(title) * '─'}")
 
         gs.save(out_grading_sheet)
         if i != len(groups) - 1:
@@ -174,3 +168,14 @@ def grade_pex(args: Namespace) -> None:
     util.wait_for_user("Please close all opened submission/grading files and press ENTER to continue ...")
     grader.cleanup()
     file_mgmt.cleanup()
+
+
+def config_list(_: Namespace):
+    util.info(f"Current configuration:\n\n{config.as_str()}", always_display=True, append_full_stop=False)
+
+def config_edit(args: Namespace):
+    key = args.key
+    value = args.value
+    config.set_json(key, value)
+    config.save()
+    util.info(f"Updated configuration:\n\n{config.as_str()}", always_display=True, append_full_stop=False)
