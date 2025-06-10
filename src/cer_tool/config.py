@@ -48,7 +48,7 @@ _default_config: dict = {
         "html_magic_comment": "<!--%%%-->",
         "docker_group_name": "cer-tool",
         "notebook_auto_edit": {
-            "find": ["%matplotlib notebook", "matplotlib.use(\"nbAgg}\")"],
+            "find": ["%matplotlib notebook", "matplotlib.use(\"nbAgg\")"],
             "replace": ["%matplotlib tk", "matplotlib.use('TkAgg')"]
         }
     }
@@ -106,7 +106,7 @@ def get(key_path: str) -> Config_Entry:
 
     for key in keys:
         if key not in data.keys():
-            util.error(f"Internal error: Config object does not contain key: {key}")
+            util.error(f"Internal error: Config object does not contain key: {key_path}")
         data = data[key]
     return data
 
@@ -127,7 +127,7 @@ def _typeof(key_path: str) -> Type:
 
     for key in keys:
         if key not in data.keys():
-            util.error(f"Internal error: Config object does not contain key: {key}")
+            util.error(f"Internal error: Config object does not contain key: {key_path}")
         data = data[key]
     return type(data)
 
