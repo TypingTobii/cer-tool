@@ -158,7 +158,7 @@ def _verify() -> None:
     try:
         validate(_config, schema)
     except ValidationError as e:
-        util.error(f"Invalid config:\n{e.message}")
+        util.error(f"Invalid config: {e.message}")
 
     # verify using additional checks
     for check_fun, err_msg in _CONFIG_CHECKS:
