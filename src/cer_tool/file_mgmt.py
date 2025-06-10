@@ -208,7 +208,7 @@ def parse_groups_file(path: str | PathLike[str]) -> List[List[str]] | None:
         return None
 
 
-def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> None:
+def _flat_copy_all(path_from: Path, path_to: Path, name_prefix: str, name_suffix: str, _count: int = 0) -> int:
     files_in_folder = sorted(path_from.glob("*"))
     for i, file in enumerate(files_in_folder):
         i += 1
@@ -216,8 +216,11 @@ def _flat_copy_all(path_from: Path, path_to: Path, name_prefix, name_suffix) -> 
             extension = file.suffix
             shutil.copy(file, path_to / f"{name_prefix}{i}{name_suffix}{extension}")
             util.info(f" COPY: '{file.name}' → '{name_prefix}{i}{name_suffix}{extension}'")
+            _count += 1
         else:
-            _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
+            sub_count = _flat_copy_all(file, path_to, name_prefix + f"{i}-", name_suffix)
+            _count += sub_count
+    return _count
 
 
 def extract_theoretical_submissions(groups: List[List[str]], path_from: str | PathLike[str], path_to: str) -> List[int]:
@@ -229,13 +232,17 @@ def extract_theoretical_submissions(groups: List[List[str]], path_from: str | Pa
     for groupIdx, group in enumerate(groups):
         for memberIdx, member in enumerate(group):
             submission_folder = find_single_path(f"*{member}*{config.get("moodle.submission_keyword")}*", path_from)
+            extract_all_within(submission_folder)
             moodle_id = submission_folder.name.split("_")[1]
 
             prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
             suffix = f"_{config.get("filenames.points_placeholder")}pts"
 
-            _flat_copy_all(submission_folder, path_to, prefix, suffix)
-            extracted.append(moodle_id)
+            count = _flat_copy_all(submission_folder, path_to, prefix, suffix)
+            if count > 0:
+                extracted.append(moodle_id)
+            else:
+                util.warning(f"Did not find any files for member {member} (id: {moodle_id})", "Member will be skipped.")
 
     return extracted
 

@@ -1,5 +1,6 @@
 import itertools
 from argparse import Namespace
+from functools import reduce
 from pathlib import Path
 
 from cer_tool import config, file_mgmt, grading_sheet, util, pex_grading
@@ -20,8 +21,9 @@ def prepare(args: Namespace) -> None:
     groups = file_mgmt.parse_groups_file(path_groups)
 
     # copy
-    file_mgmt.extract_theoretical_submissions(groups, extracted_submissions, path_out)
+    extracted = file_mgmt.extract_theoretical_submissions(groups, extracted_submissions, path_out)
     file_mgmt.cleanup()
+    util.info(f"Successfully extracted {len(extracted)} of {reduce(lambda acc, group: acc + len(group), groups, 0)} submissions to '{path_out}'", always_display=True)
 
 
 def edit_feedback(args: Namespace) -> None:
