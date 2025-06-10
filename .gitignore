@@ -9,3 +9,4 @@
 # ignore local Python files
 __pycache__
 *.egg-info/
+build/
