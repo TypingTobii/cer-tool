@@ -74,7 +74,7 @@ def choose_index(list: List[Any], title: str = "", message: str = "Select an opt
         print(f"{index}:\t{option}")
 
     chosen = None
-    while not chosen:
+    while chosen is None:
         user_in = input(f"{message} [0..{len(list)-1}] ")
         try:
             user_in = int(user_in)
