@@ -94,10 +94,8 @@ def main():
 
     # config-edit
     parser_config_edit = config_subparsers.add_parser("edit", aliases=["e"],
-                                                      help="edit a setting in the current configuration",
-                                                      description="edit a setting in the current configuration")
-    parser_config_edit.add_argument("key", help="the setting to edit")
-    parser_config_edit.add_argument("value", help="the new value of this setting, in JSON notation, i.e. string must be double-qouted")
+                                                      help="edit the current configuration",
+                                                      description="edit the current configuration")
     parser_config_edit.set_defaults(func=command_handlers.config_edit)
 
 

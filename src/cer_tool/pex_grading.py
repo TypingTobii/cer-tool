@@ -164,7 +164,7 @@ class PexGrader:
 
     def open_solution(self) -> None:
         solution_path = file_mgmt.find_single_path("*.ipynb", self.grading_package / self.pex_name / "python")
-        _notebook_vscode_fix(solution_path)
+        _notebook_auto_edit(solution_path)
         file_mgmt.open_file(solution_path)
 
     def cleanup(self) -> None:
@@ -175,7 +175,7 @@ class PexGrader:
 
 
 def open_submission(path: Path) -> None:
-    _notebook_vscode_fix(path)
+    _notebook_auto_edit(path)
     file_mgmt.open_file(path)
 
 
@@ -298,6 +298,9 @@ def _json_to_txt(d: dict) -> Tuple[str, str]:
     return grade_text, reached_pts
 
 
-def _notebook_vscode_fix(notebook: Path) -> None:
-    file_mgmt.replace_in_file(notebook, "%matplotlib notebook", "%matplotlib tk")
-    file_mgmt.replace_in_file(notebook, "matplotlib.use(\"nbAgg}\")", "matplotlib.use('TkAgg')")
+def _notebook_auto_edit(notebook: Path) -> None:
+    find = config.get("pex.notebook_auto_edit.find")
+    replace = find = config.get("pex.notebook_auto_edit.replace")
+
+    for subst in zip(find, replace):
+        file_mgmt.replace_in_file(notebook, subst[0], subst[1])

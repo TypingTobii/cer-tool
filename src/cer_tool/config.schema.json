@@ -13,12 +13,16 @@
                 },
                 "tmp_folder": {
                     "type": "string"
+                },
+                "points_placeholder": {
+                    "type": "string"
                 }
             },
             "required": [
                 "edit_feedback_file",
                 "feedback_filename_prefix",
-                "tmp_folder"
+                "tmp_folder",
+                "points_placeholder"
             ]
         },
         "initials": {
@@ -57,6 +61,27 @@
                 },
                 "html_magic_comment": {
                     "type": "string"
+                },
+                "notebook_auto_edit": {
+                    "type": "object",
+                    "properties": {
+                        "find": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "replace": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "find",
+                        "replace"
+                    ]
                 }
             },
             "required": [

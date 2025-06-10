@@ -24,7 +24,8 @@ _CONFIG_CHECKS : List[Tuple[Callable[[dict], bool], str]] = [
     (lambda c: c["initials"] != "???", "initials not set"),
     (lambda c: "{}" in c["filenames"]["tmp_folder"], "tmp folder filename must include a placeholder"),
     (lambda c: "{}" in "".join(c["moodle"]["feedback_footer"]), "feedback footer must include a placeholder"),
-    (lambda c: c["pex"]["text_divider"] != "", "text divider must not be empty")
+    (lambda c: c["pex"]["text_divider"] != "", "text divider must not be empty"),
+    (lambda c: len(c["pex"]["notebook_auto_edit"]["find"]) == len(c["pex"]["notebook_auto_edit"]["replace"]), "find and replace arrays must have the same length"),
 ]
 
 _default_config: dict = {
@@ -32,7 +33,8 @@ _default_config: dict = {
     "filenames": {
         "tmp_folder": "__CER_TOOL_TEMP_FOLDER{}__",
         "edit_feedback_file": "__CER_TOOL_TEMP_COMMENT__.txt",
-        "feedback_filename_prefix": "Feedback"
+        "feedback_filename_prefix": "Feedback",
+        "points_placeholder": " --- "
     },
     "moodle": {
         "submission_keyword": "assignsubmission_file",
@@ -44,7 +46,11 @@ _default_config: dict = {
     "pex": {
         "text_divider": "%",
         "html_magic_comment": "<!--%%%-->",
-        "docker_group_name": "cer-tool"
+        "docker_group_name": "cer-tool",
+        "notebook_auto_edit": {
+            "find": ["%matplotlib notebook", "matplotlib.use(\"nbAgg}\")"],
+            "replace": ["%matplotlib tk", "matplotlib.use('TkAgg')"]
+        }
     }
 }
 
@@ -71,6 +77,8 @@ def _save_without_verifying() -> None:
 
 
 def set(key_path: str, value: Config_Entry) -> None:
+    global _verified
+
     keys = key_path.split(".")
     data = _config
     for key in keys[:-1]:
@@ -79,18 +87,14 @@ def set(key_path: str, value: Config_Entry) -> None:
         data = data[key]
     data[keys[-1]] = value
 
-    _verify()
+    _verified = False
 
 
 def set_json(key_path: str, value: str) -> None:
-    if _typeof(key_path) is not str:
-        try:
-            parsed_value: Config_Entry = json.loads(value)
-        except json.JSONDecodeError as err:
-            util.error(f"Failed to parse input '{value}': {err.msg}")
-            return
-    else:
-        parsed_value = value
+    try:
+        parsed_value: Config_Entry = json.loads(value)
+    except json.JSONDecodeError as err:
+        raise ValueError(f"Failed to parse input '{value}': {err.msg}")
 
     set(key_path, parsed_value)
 
@@ -106,6 +110,17 @@ def get(key_path: str) -> Config_Entry:
         data = data[key]
     return data
 
+def key_exists(key_path: str) -> bool:
+    keys = key_path.split('.')
+    data = _config
+
+    for key in keys:
+        if key not in data.keys():
+            return False
+        data = data[key]
+    return True
+
+
 def _typeof(key_path: str) -> Type:
     keys = key_path.split('.')
     data = _config
@@ -120,7 +135,7 @@ def _typeof(key_path: str) -> Type:
 def as_str() -> str:
     def rec(path: str, sub_settings: dict) -> str:
         acc = ""
-        for key in sub_settings.keys():
+        for key in sorted(sub_settings.keys()):
             if isinstance(sub_settings[key], dict):
                 acc += rec(f"{path}{key}.", sub_settings[key])
             else:

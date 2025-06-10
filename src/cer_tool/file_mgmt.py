@@ -232,7 +232,7 @@ def extract_theoretical_submissions(groups: List[List[str]], path_from: str | Pa
             moodle_id = submission_folder.name.split("_")[1]
 
             prefix = f"Submission_Gr{groupIdx + 1}{util.index_to_ascii(memberIdx)}_{member}_{moodle_id}_File "
-            suffix = f"_ --- pts"
+            suffix = f"_{config.get("filenames.points_placeholder")}pts"
 
             _flat_copy_all(submission_folder, path_to, prefix, suffix)
             extracted.append(moodle_id)

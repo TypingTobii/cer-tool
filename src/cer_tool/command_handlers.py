@@ -173,9 +173,32 @@ def grade_pex(args: Namespace) -> None:
 def config_list(_: Namespace):
     util.info(f"Current configuration:\n\n{config.as_str()}", always_display=True, append_full_stop=False)
 
-def config_edit(args: Namespace):
-    key = args.key
-    value = args.value
-    config.set_json(key, value)
+def config_edit(_: Namespace):
+    util.info(f"Current configuration:\n\n{config.as_str()}", always_display=True, append_full_stop=False)
+    util.info("", always_display=True)
+
+    while True:
+        util.info("Enter a setting to edit or press ENTER to finish", always_display=True)
+        key = input("  key = ")
+        if not key:
+            break
+        if not config.key_exists(key):
+            util.warning(f"Setting '{key}' does not exist.", "Please try again.")
+            util.info("", always_display=True)
+            continue
+
+        util.info("Enter the new value for the setting. Please use JSON notation, i.e. double-quote strings", always_display=True)
+        val = input("value = ")
+        try:
+            config.set_json(key, val)
+        except ValueError as err:
+            util.warning(f"{err.args[0]}", "Please try again.")
+            util.info("", always_display=True)
+            continue
+
+        util.info("", always_display=True)
+
     config.save()
+    util.info("", always_display=True)
+    util.info("Configuration saved.", always_display=True)
     util.info(f"Updated configuration:\n\n{config.as_str()}", always_display=True, append_full_stop=False)
