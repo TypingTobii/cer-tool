@@ -99,7 +99,7 @@ class PexFeedback:
         try:
             test_output = text[1].strip()
             additional_feedback = text[3].strip()
-            points = text[5].strip()
+            points = text[5].strip().replace(",", ".")
         except IndexError:
             test_output = additional_feedback = points = ""
 
