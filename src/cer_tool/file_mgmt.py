@@ -328,7 +328,7 @@ def open_file(path: str | PathLike[str]) -> None:
     elif platform.system() == 'Windows':  # Windows
         subprocess.Popen(('start', '', path), creationflags=subprocess.DETACHED_PROCESS, shell=True)
     else:  # linux variants
-        subprocess.Popen(('xdg-open', path), start_new_session=True)
+        subprocess.Popen(('xdg-open', path), start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def replace_in_file(path: str | PathLike[str], old: str, replacement: str) -> None:
