@@ -28,7 +28,7 @@ def main():
                                 help="custom output folder")
 
     # edit_feedback
-    parser_feedback = subparsers.add_parser("edit_feedback", aliases=["efb"],
+    parser_feedback = subparsers.add_parser("edit-feedback", aliases=["efb"],
                                             help="add or edit textual feedback for a given student on the grading sheet",
                                             description="add or edit textual feedback for a given student on the grading sheet")
     parser_feedback_group_input = parser_feedback.add_argument_group("input files")
@@ -61,7 +61,7 @@ def main():
     parser_finish.set_defaults(func=command_handlers.finish)
 
     # grade_pex
-    parser_pex = subparsers.add_parser("grade_pex", aliases=["pex"],
+    parser_pex = subparsers.add_parser("grade-pex", aliases=["pex"],
                                        help="semi-automatically grade all assigned programming exercise submissions",
                                        description="semi-automatically grade all assigned programming exercise submissions")
 
