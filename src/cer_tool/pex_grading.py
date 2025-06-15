@@ -163,7 +163,7 @@ class PexGrader:
 
 
     def open_solution(self) -> None:
-        solution_path = file_mgmt.find_single_path("*.ipynb", self.grading_package / self.pex_name / "python")
+        solution_path = file_mgmt.find_single_path("*sol*.ipynb", self.grading_package / self.pex_name / "python")
         _notebook_auto_edit(solution_path)
         file_mgmt.open_file(solution_path)
 
