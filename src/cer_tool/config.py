@@ -48,7 +48,7 @@ _default_config: dict = {
         "html_magic_comment": "<!--%%%-->",
         "docker_group_name": "cer-tool",
         "notebook_auto_edit": {
-            "find": ["%matplotlib notebook", "matplotlib.use(\"nbAgg\")"],
+            "find": ["%matplotlib notebook", "matplotlib.use(\\\"nbAgg\\\")"],
             "replace": ["%matplotlib tk", "matplotlib.use('TkAgg')"]
         }
     }

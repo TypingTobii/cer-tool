@@ -337,7 +337,6 @@ def replace_in_file(path: str | PathLike[str], old: str, replacement: str) -> No
         content = f.read()
 
     content = content.replace(old, replacement)
-    print(content)
 
     with open(path, 'w') as f:
         f.write(content)

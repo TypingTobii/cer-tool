@@ -300,7 +300,7 @@ def _json_to_txt(d: dict) -> Tuple[str, str]:
 
 def _notebook_auto_edit(notebook: Path) -> None:
     find = config.get("pex.notebook_auto_edit.find")
-    replace = find = config.get("pex.notebook_auto_edit.replace")
+    replace = config.get("pex.notebook_auto_edit.replace")
 
     for subst in zip(find, replace):
         file_mgmt.replace_in_file(notebook, subst[0], subst[1])
