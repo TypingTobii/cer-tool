@@ -135,8 +135,8 @@ class PexGrader:
         # initiate grading by starting the docker container
         util.info(f"Grading submission '{submission}'...")
         success, stdout = util.run_potentially_failing_command("docker run --rm "
-                         f"--mount type=bind,source={grading_folder.resolve()},target=/submissions "
-                         f"--mount type=bind,source={grading_target.resolve()},target=/grading_schemes "
+                         f"--mount type=bind,source=\"{grading_folder.resolve()}\",target=/submissions "
+                         f"--mount type=bind,source=\"{grading_target.resolve()}\",target=/grading_schemes "
                          f"--name {self.pex_name}-docker-group-{config.get("pex.docker_group_name")} "
                          f"{self.pex_name}-docker {self.pex_name} {config.get("pex.docker_group_name")}")
 
