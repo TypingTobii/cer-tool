@@ -231,7 +231,7 @@ def extract_theoretical_submissions(groups: List[List[str]], path_from: str | Pa
 
     for groupIdx, group in enumerate(groups):
         for memberIdx, member in enumerate(group):
-            submission_folder = find_single_path(f"*{member}*{config.get("moodle.submission_keyword")}*", path_from)
+            submission_folder = find_single_path(f"*{member.replace(' ', '*')}*{config.get("moodle.submission_keyword")}*", path_from)
             extract_all_within(submission_folder)
             moodle_id = submission_folder.name.split("_")[1]
 
